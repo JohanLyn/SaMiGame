@@ -1,290 +1,299 @@
 import Phaser from 'phaser';
 import QRCode from 'qrcode';
-import { MAX_PLAYERS, PLAYER_COLORS, type ControllerInput } from '@samigame/shared';
+import { MAX_PLAYERS, PLAYER_COLORS, type ActionValue, type PlayerInfo } from '@samigame/shared';
+import { audio } from '../kit/audio';
+import { Fx } from '../kit/fx';
+import { clouds, islandSvg, palm, sea, sun } from '../kit/scenery';
+import { addSvg, ink, svgDoc } from '../kit/svg';
+import { TEX } from '../kit/textures';
+import { C, H, N, W } from '../kit/theme';
+import { body, label, panel, title } from '../kit/ui';
+import { DEV, keyboard, net } from '../net';
 import { Blok } from '../objects/Blok';
-import type { HostSession } from '../session';
-import { KeyboardPlayers } from '../keyboard';
+import { Director } from '../flow/Director';
 
-const FONT = 'Trebuchet MS, Arial Rounded MT Bold, sans-serif';
-const ISLAND = { x: 845, y: 380, rx: 365, ry: 200 };
-const SPEED = 280;
-const BUMP_DISTANCE = 52;
-const BUMP_VIBRATE_COOLDOWN_MS = 400;
-const SPAWNS = [
-  { x: 665, y: 330 },
-  { x: 1025, y: 330 },
-  { x: 665, y: 450 },
-  { x: 1025, y: 450 },
-];
+const ROUND_OPTIONS = [5, 10, 15];
+const ISLAND = { x: 1265, y: 700, rx: 560, ry: 190 };
+const SPOTS = [905, 1145, 1385, 1625].map((x, i) => ({ x, y: 720 + (i % 2) * 26 }));
 
-interface SlotCard {
-  bg: Phaser.GameObjects.Rectangle;
-  name: Phaser.GameObjects.Text;
-  status: Phaser.GameObjects.Text;
+interface Spot {
+  blok: Blok | null;
+  empty: Phaser.GameObjects.Container;
+  key: string;
 }
 
-/**
- * M0-lobbyen: rumkode + QR til venstre, en ø hvor spillernes blokfigurer kan løbe rundt og hoppe.
- */
+/** Lobbyen: QR-kode, rumkode og spillerne på øen, mens de bygger deres figurer på telefonen. */
 export class LobbyScene extends Phaser.Scene {
-  private session!: HostSession;
-  private keyboard!: KeyboardPlayers;
-  private bloks: Blok[] = [];
-  private cards: SlotCard[] = [];
-  private prevA: boolean[] = [];
-  private lastBumpVibrate: number[] = [];
+  private fx!: Fx;
+  private spots: Spot[] = [];
   private codeText!: Phaser.GameObjects.Text;
   private urlText!: Phaser.GameObjects.Text;
   private statusText!: Phaser.GameObjects.Text;
-  private qrImage: Phaser.GameObjects.Image | null = null;
+  private roundsText!: Phaser.GameObjects.Text;
+  private hintText!: Phaser.GameObjects.Text;
+  private soundHint!: Phaser.GameObjects.Text;
+  private qr: Phaser.GameObjects.Image | null = null;
   private qrUrl: string | null = null;
+  private rounds = 10;
+  private starting = false;
+  private welcomed = false;
 
   constructor() {
     super('lobby');
   }
 
+  private get director(): Director {
+    return this.registry.get('director') as Director;
+  }
+
   create(): void {
-    this.session = this.registry.get('session') as HostSession;
-    this.keyboard = new KeyboardPlayers(this, this.registry.get('keyboardPlayers') as boolean);
-    this.prevA = Array(MAX_PLAYERS).fill(false);
-    this.lastBumpVibrate = Array(MAX_PLAYERS).fill(0);
+    this.fx = new Fx(this);
+    this.starting = false;
+    this.spots = [];
+    this.qr = null;
+    this.qrUrl = null;
+    this.rounds = DEV.rounds ?? this.rounds;
 
-    this.drawWorld();
-    this.drawJoinPanel();
-    this.drawSlotCards();
+    sea(this, 330);
+    sun(this, 1790, 120, 0.9);
+    clouds(this, 6, 40, 260);
+    this.drawIsland();
+    void this.drawJoinPanel();
+    this.drawSpots();
+    this.drawBottomBar();
+    this.fx.vignette(0.55);
 
-    this.bloks = SPAWNS.map((p, i) =>
-      new Blok(this, p.x, p.y, Phaser.Display.Color.HexStringToColor(PLAYER_COLORS[i].hex).color),
+    audio.music('lobby');
+
+    const unsub = net.subscribe(() => this.refresh());
+    const unAction = net.onAction((slot, name, value) => this.onAction(slot, name, value));
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !keyboard.enabled) this.startGame();
+      if (e.key === 'r' || e.key === 'R') this.setRounds(ROUND_OPTIONS[(ROUND_OPTIONS.indexOf(this.rounds) + 1) % ROUND_OPTIONS.length]);
+    };
+    window.addEventListener('keydown', onKey);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      unsub();
+      unAction();
+      window.removeEventListener('keydown', onKey);
+    });
+    this.refresh();
+    if (DEV.autostart) this.time.delayedCall(800, () => this.startGame());
+  }
+
+  update(): void {
+    this.soundHint?.setVisible(!audio.unlocked);
+  }
+
+  // ---------------------------------------------------------------------------
+
+  private humans(): (PlayerInfo | null)[] {
+    return net.players.slice(0, MAX_PLAYERS);
+  }
+
+  private captain(): number {
+    return this.humans().findIndex((p) => p?.connected);
+  }
+
+  private refresh(): void {
+    if (!this.codeText) return;
+    this.codeText.setText(net.code ?? '····');
+    this.urlText.setText(net.joinUrl ? net.joinUrl.replace(/^https?:\/\//, '') : '');
+    this.statusText.setText(net.connected ? '' : 'Forbinder til serveren…');
+    if (net.joinUrl && net.joinUrl !== this.qrUrl) void this.showQr(net.joinUrl);
+
+    const captain = this.captain();
+    const humans = this.humans();
+    humans.forEach((p, slot) => this.updateSpot(slot, p));
+    const count = humans.filter((p) => p?.connected).length;
+    this.hintText.setText(
+      count === 0
+        ? 'Scan QR-koden med telefonen for at være med!'
+        : `${humans[captain]?.name ?? 'Kaptajnen'} starter spillet fra sin telefon  ·  tomme pladser bliver bots`,
     );
+    for (const p of humans) {
+      if (!p) continue;
+      net.setLayout(p.slot, {
+        kind: 'lobby',
+        captain: p.slot === captain,
+        rounds: this.rounds,
+        roundOptions: ROUND_OPTIONS,
+        canStart: count > 0,
+      });
+    }
+  }
 
-    const unsubscribe = this.session.subscribe(() => this.refresh());
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribe);
+  private updateSpot(slot: number, player: PlayerInfo | null): void {
+    const spot = this.spots[slot];
+    const spec = SPOTS[slot];
+    const color = PLAYER_COLORS[slot].hex;
+    const key = player ? `${player.name}|${JSON.stringify(player.avatar)}|${player.connected}` : '';
+    if (key === spot.key) return;
+    const wasEmpty = spot.key === '';
+    spot.key = key;
+
+    if (!player) {
+      spot.blok?.destroy();
+      spot.blok = null;
+      spot.empty.setVisible(true);
+      return;
+    }
+    spot.empty.setVisible(false);
+    const avatar = player.avatar ?? Director.fillSeeds([null, null, null, null])[slot].avatar;
+    if (!spot.blok) {
+      spot.blok = new Blok(this, spec.x, spec.y, avatar, { size: 1.25, tag: { name: player.name, color }, ring: color });
+      spot.blok.setDepth(spec.y);
+      this.fx.popIn(spot.blok);
+      this.fx.stars(spec.x, spec.y - 150, N.sun, 12);
+      audio.sfx('pop');
+      audio.sfx('coin', { delay: 0.08 });
+      if (!this.welcomed) {
+        this.welcomed = true;
+        audio.say('welcome');
+      }
+    } else {
+      spot.blok.setAvatar(avatar).setTag(player.name, color);
+      if (!wasEmpty) {
+        spot.blok.squash(1.2, 0.85);
+        this.fx.burst(spec.x, spec.y - 120, { texture: TEX.spark, color: [N.sun, 0xffffff], count: 8, speed: 300, scale: 0.4, gravity: 0 });
+        audio.sfx('select');
+      }
+    }
+    spot.blok.setAlpha(player.connected ? 1 : 0.5);
+    if (player.connected) spot.blok.idle();
+    else spot.blok.sad();
+  }
+
+  private onAction(slot: number, name: string, value: ActionValue): void {
+    if (this.starting) return;
+    if (name === 'cheer') {
+      const blok = this.spots[slot]?.blok;
+      if (blok) {
+        blok.hop(90);
+        blok.cheer();
+        this.time.delayedCall(1200, () => blok.active && blok.idle());
+        audio.sfx('boing');
+      }
+      return;
+    }
+    if (slot !== this.captain()) return;
+    if (name === 'rounds' && typeof value === 'number' && ROUND_OPTIONS.includes(value)) this.setRounds(value);
+    if (name === 'start') this.startGame();
+  }
+
+  private setRounds(rounds: number): void {
+    this.rounds = rounds;
+    this.roundsText.setText(`🏁 ${rounds} runder`);
+    this.fx.squash(this.roundsText, 1.15, 0.9);
+    audio.sfx('select');
     this.refresh();
   }
 
-  update(_time: number, delta: number): void {
-    const dt = delta / 1000;
+  private startGame(): void {
+    if (this.starting) return;
+    this.starting = true;
+    audio.unlock();
+    audio.sfx('fanfare');
+    audio.say('start', true);
+    for (const spot of this.spots) spot.blok?.cheer();
+    this.fx.confetti(1200);
+    const humans = this.humans().map((p) => (p ? { name: p.name, avatar: p.avatar } : null));
+    this.time.delayedCall(1100, () => this.director.startGame(Director.fillSeeds(humans), this.rounds));
+  }
 
-    this.bloks.forEach((blok, slot) => {
-      if (!this.isActive(slot)) {
-        blok.animate(0, 0, delta);
-        return;
-      }
-      const input = this.inputFor(slot);
-      blok.x += input.x * SPEED * dt;
-      blok.y += input.y * SPEED * 0.75 * dt; // lidt langsommere i dybden – føles mere "isometrisk"
-      blok.animate(input.x, input.y, delta);
-      if (input.a && !this.prevA[slot]) blok.hop();
-      this.prevA[slot] = input.a;
+  // ---------------------------------------------------------------------------
+  // Tegning
+
+  private drawIsland(): void {
+    const key = `island-${ISLAND.rx}-${ISLAND.ry}`;
+    void addSvg(this, key, islandSvg(ISLAND.rx, ISLAND.ry), ISLAND.rx * 2 + 140, ISLAND.ry * 2 + 150).then(() => {
+      if (!this.sys.isActive()) return;
+      const img = this.add.image(ISLAND.x, ISLAND.y - ISLAND.ry - 50 + (ISLAND.ry * 2 + 150) / 2, key).setDepth(-500);
+      this.tweens.add({ targets: img, y: img.y + 6, duration: 2400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     });
+    palm(this, ISLAND.x - ISLAND.rx + 40, ISLAND.y - 10, 1.05, 600);
+    palm(this, ISLAND.x + ISLAND.rx - 30, ISLAND.y + 10, 0.95, 600);
+    palm(this, ISLAND.x + ISLAND.rx - 150, ISLAND.y - 60, 0.75, 500);
 
-    this.resolveBumps();
-    for (const blok of this.bloks) {
-      clampToIsland(blok);
-      blok.setDepth(blok.y);
-    }
+    const sign = title(this, ISLAND.x, 410, 'Byg din figur på telefonen!', 56, { color: C.cream });
+    sign.setDepth(100);
+    this.tweens.add({ targets: sign, angle: { from: -1.5, to: 1.5 }, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   }
 
-  // ---- Spillere ----
+  private async drawJoinPanel(): Promise<void> {
+    const bg = await panel(this, 330, 540, 560, 1010, C.deep, { radius: 44 });
+    bg.setDepth(1000);
 
-  private isActive(slot: number): boolean {
-    return this.session.players[slot]?.connected === true || this.keyboard.controls(slot);
-  }
+    const logo = this.add.container(330, 120).setDepth(1001);
+    const sami = title(this, 0, -36, 'SaMi', 120, { color: C.cream });
+    const party = title(this, 0, 70, 'PARTY', 110, { color: C.sun });
+    logo.add([sami, party]);
+    logo.angle = -4;
+    this.tweens.add({ targets: logo, angle: 4, duration: 2000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    this.tweens.add({ targets: party, scale: 1.06, duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 
-  private inputFor(slot: number): ControllerInput {
-    // Tastaturet vinder kun når der faktisk trykkes, så en telefon på samme plads stadig virker.
-    const keys = this.keyboard.read(slot);
-    if (keys && (keys.x !== 0 || keys.y !== 0 || keys.a || keys.b)) return keys;
-    return this.session.inputs[slot];
-  }
+    body(this, 330, 268, 'Scan og hop ind!', 40).setDepth(1001);
+    const card = await panel(this, 330, 525, 420, 420, C.cream, { radius: 30 });
+    card.setDepth(1001);
 
-  /** Figurer der støder ind i hinanden skubbes fra hinanden – og telefonerne summer. */
-  private resolveBumps(): void {
-    for (let i = 0; i < this.bloks.length; i++) {
-      for (let j = i + 1; j < this.bloks.length; j++) {
-        if (!this.isActive(i) || !this.isActive(j)) continue;
-        const a = this.bloks[i];
-        const b = this.bloks[j];
-        if (a.hopping || b.hopping) continue; // man kan hoppe hen over hinanden
-        const dx = b.x - a.x;
-        const dy = (b.y - a.y) * 1.6;
-        const dist = Math.hypot(dx, dy) || 0.01;
-        if (dist >= BUMP_DISTANCE) continue;
-        const push = (BUMP_DISTANCE - dist) / 2;
-        a.x -= (dx / dist) * push;
-        a.y -= (dy / dist) * push * 0.6;
-        b.x += (dx / dist) * push;
-        b.y += (dy / dist) * push * 0.6;
-        this.bumpFeedback(i);
-        this.bumpFeedback(j);
-      }
-    }
-  }
-
-  private bumpFeedback(slot: number): void {
-    const now = this.time.now;
-    if (now - this.lastBumpVibrate[slot] < BUMP_VIBRATE_COOLDOWN_MS) return;
-    this.lastBumpVibrate[slot] = now;
-    this.bloks[slot].bonk();
-    this.session.vibrate(slot, 40);
-  }
-
-  // ---- UI ----
-
-  private refresh(): void {
-    const { code, joinUrl, connected, players } = this.session;
-    this.codeText.setText(code ?? '····');
-    this.urlText.setText(joinUrl ? joinUrl.replace(/^https?:\/\//, '') : '');
-    this.statusText.setText(connected ? '' : 'Forbinder til serveren…');
-    if (joinUrl && joinUrl !== this.qrUrl) void this.showQr(joinUrl);
-
-    players.forEach((player, slot) => {
-      const card = this.cards[slot];
-      const keyboard = !player?.connected && this.keyboard.controls(slot);
-      const state = keyboard ? 'active' : !player ? 'empty' : player.connected ? 'active' : 'disconnected';
-      const name = keyboard ? `Tastatur ${slot + 1}` : (player?.name ?? 'Ledig plads');
-
-      this.bloks[slot].setBlokState(state).setLabel(state === 'empty' ? '' : name);
-      card.name.setText(name);
-      card.status.setText(
-        state === 'active' ? 'Klar til kaos!' : state === 'disconnected' ? 'Mistet forbindelse…' : 'Scan QR-koden',
-      );
-      card.bg.setAlpha(state === 'empty' ? 0.35 : 1);
-      if (state === 'empty') {
-        const spawn = SPAWNS[slot];
-        this.bloks[slot].setPosition(spawn.x, spawn.y);
-      }
-    });
+    label(this, 330, 768, 'RUMKODE', 34, { color: '#a9b4ff' }).setDepth(1001);
+    this.codeText = title(this, 330, 850, '····', 130, { color: C.sun }).setDepth(1001).setLetterSpacing(14);
+    this.urlText = body(this, 330, 945, '', 28, { color: '#c9d3ff', wrap: 500 }).setDepth(1001);
+    this.statusText = body(this, 330, 1000, '', 28, { color: '#ffb3b3' }).setDepth(1001);
+    this.refresh();
   }
 
   private async showQr(url: string): Promise<void> {
     this.qrUrl = url;
-    const dataUrl = await QRCode.toDataURL(url, {
-      margin: 1,
-      width: 260,
-      color: { dark: '#10194a', light: '#fff8e7' },
-    });
-    if (url !== this.qrUrl || !this.scene.isActive()) return;
-
+    const dataUrl = await QRCode.toDataURL(url, { margin: 1, width: 720, color: { dark: C.ink, light: C.cream } });
+    if (url !== this.qrUrl || !this.sys.isActive()) return;
     const key = `qr-${url}`;
     const place = () => {
-      this.qrImage?.destroy();
-      this.qrImage = this.add.image(220, 300, key).setDisplaySize(260, 260);
+      this.qr?.destroy();
+      this.qr = this.add.image(330, 518, key).setDisplaySize(360, 360).setDepth(1002);
     };
-    if (this.textures.exists(key)) {
-      place();
-    } else {
+    if (this.textures.exists(key)) place();
+    else {
       this.textures.once(Phaser.Textures.Events.ADD_KEY + key, place);
       this.textures.addBase64(key, dataUrl);
     }
   }
 
-  private drawWorld(): void {
-    const { width, height } = this.scale;
-    this.add.rectangle(width / 2, height / 2, width, height, 0x2e7fd1).setDepth(-2000);
-
-    // Bølger der vugger i søen.
-    for (let i = 0; i < 18; i++) {
-      const wave = this.add
-        .rectangle(Phaser.Math.Between(440, 1260), Phaser.Math.Between(20, 700), Phaser.Math.Between(30, 70), 5, 0xffffff, 0.25)
-        .setDepth(-1000);
-      this.tweens.add({
-        targets: wave,
-        x: wave.x + 24,
-        alpha: 0.05,
-        duration: Phaser.Math.Between(1400, 2600),
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut',
-      });
-    }
-
-    this.add.ellipse(ISLAND.x, ISLAND.y + 14, ISLAND.rx * 2 + 70, ISLAND.ry * 2 + 60, 0x1f5fa3).setDepth(-900);
-    this.add.ellipse(ISLAND.x, ISLAND.y, ISLAND.rx * 2 + 50, ISLAND.ry * 2 + 40, 0xf2d48f).setDepth(-900);
-    this.add.ellipse(ISLAND.x, ISLAND.y - 6, ISLAND.rx * 2, ISLAND.ry * 2, 0x63c55a).setDepth(-900);
-    for (let i = 0; i < 14; i++) {
-      const angle = (i / 14) * Math.PI * 2;
-      const r = Phaser.Math.FloatBetween(0.3, 0.85);
-      this.add
-        .ellipse(ISLAND.x + Math.cos(angle) * ISLAND.rx * r, ISLAND.y + Math.sin(angle) * ISLAND.ry * r, 26, 10, 0x4ea546)
-        .setDepth(-899);
-    }
-
-    // Skilt om det der kommer.
-    this.add.rectangle(ISLAND.x, ISLAND.y - ISLAND.ry - 6, 16, 50, 0x8a5a2b).setStrokeStyle(3, 0x000000).setDepth(-800);
-    this.add
-      .rectangle(ISLAND.x, ISLAND.y - ISLAND.ry - 40, 420, 46, 0xc98d4b)
-      .setStrokeStyle(4, 0x000000)
-      .setDepth(-800);
-    this.add
-      .text(ISLAND.x, ISLAND.y - ISLAND.ry - 40, 'Løb rundt og tryk HOP!', {
-        fontFamily: FONT,
-        fontSize: '26px',
-        fontStyle: 'bold',
-        color: '#2b1a08',
-      })
-      .setOrigin(0.5)
-      .setDepth(-800);
-  }
-
-  private drawJoinPanel(): void {
-    this.add.rectangle(220, 360, 400, 680, 0x10194a, 0.92).setStrokeStyle(4, 0x000000);
-
-    const title = this.add.container(220, 70, [
-      this.add.text(-8, 0, 'SaMi', { fontFamily: FONT, fontSize: '58px', fontStyle: 'bold', color: '#fff8e7' }).setOrigin(1, 0.5),
-      this.add.text(8, 0, 'Party', { fontFamily: FONT, fontSize: '58px', fontStyle: 'bold', color: '#ffc928' }).setOrigin(0, 0.5),
-    ]);
-    title.angle = -4;
-    this.tweens.add({ targets: title, angle: 4, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-
-    this.add
-      .text(220, 140, 'Scan og hop ind!', { fontFamily: FONT, fontSize: '26px', color: '#fff8e7' })
-      .setOrigin(0.5);
-    this.add.rectangle(220, 300, 280, 280, 0xfff8e7).setStrokeStyle(4, 0x000000);
-
-    this.add.text(220, 470, 'RUMKODE', { fontFamily: FONT, fontSize: '20px', color: '#9fb0ff' }).setOrigin(0.5);
-    this.codeText = this.add
-      .text(220, 520, '····', { fontFamily: FONT, fontSize: '72px', fontStyle: 'bold', color: '#ffc928' })
-      .setOrigin(0.5)
-      .setLetterSpacing(10)
-      .setStroke('#000000', 6);
-    this.urlText = this.add
-      .text(220, 578, '', { fontFamily: FONT, fontSize: '18px', color: '#c9d3ff', align: 'center', wordWrap: { width: 360 } })
-      .setOrigin(0.5);
-    this.statusText = this.add
-      .text(220, 640, '', { fontFamily: FONT, fontSize: '20px', color: '#ffb3b3' })
-      .setOrigin(0.5);
-  }
-
-  private drawSlotCards(): void {
-    this.cards = PLAYER_COLORS.map((color, slot) => {
-      const x = 538 + slot * 196;
-      const y = 660;
-      const bg = this.add
-        .rectangle(x, y, 182, 76, Phaser.Display.Color.HexStringToColor(color.hex).color)
-        .setStrokeStyle(4, 0x000000)
-        .setDepth(2000);
-      const name = this.add
-        .text(x, y - 14, '', { fontFamily: FONT, fontSize: '22px', fontStyle: 'bold', color: '#111111' })
-        .setOrigin(0.5)
-        .setDepth(2001);
-      const status = this.add
-        .text(x, y + 16, '', { fontFamily: FONT, fontSize: '16px', color: '#111111' })
-        .setOrigin(0.5)
-        .setDepth(2001);
-      return { bg, name, status };
+  private drawSpots(): void {
+    const emptyKey = 'lobby-empty';
+    void addSvg(
+      this,
+      emptyKey,
+      svgDoc(
+        160,
+        240,
+        `<rect x="34" y="10" width="92" height="76" rx="20" fill="#fff" opacity="0.25" ${ink(6)} stroke-dasharray="14 10"/>` +
+          `<rect x="40" y="96" width="80" height="70" rx="14" fill="#fff" opacity="0.2" ${ink(6)} stroke-dasharray="14 10"/>` +
+          `<rect x="46" y="170" width="28" height="56" rx="8" fill="#fff" opacity="0.2" ${ink(5)} stroke-dasharray="10 8"/>` +
+          `<rect x="86" y="170" width="28" height="56" rx="8" fill="#fff" opacity="0.2" ${ink(5)} stroke-dasharray="10 8"/>`,
+      ),
+      160,
+      240,
+    );
+    SPOTS.forEach((spec, slot) => {
+      const color = Phaser.Display.Color.HexStringToColor(PLAYER_COLORS[slot].hex).color;
+      const ring = this.add.image(0, 0, TEX.ring).setTint(color).setDisplaySize(170, 56).setAlpha(0.7);
+      const ghost = this.add.image(0, -120, '__WHITE').setAlpha(0);
+      void addSvg(this, emptyKey, '', 160, 240).then(() => ghost.active && ghost.setTexture(emptyKey).setAlpha(1).setScale(1.05));
+      const q = title(this, 0, -205, '?', 64, { color: PLAYER_COLORS[slot].hex });
+      const text = body(this, 0, 52, 'Ledig plads', 26, { color: C.cream, stroke: 6 });
+      const empty = this.add.container(spec.x, spec.y, [ring, ghost, q, text]).setDepth(spec.y);
+      this.tweens.add({ targets: q, y: -220, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: slot * 200 });
+      this.tweens.add({ targets: ghost, alpha: 0.55, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: slot * 150 });
+      this.spots.push({ blok: null, empty, key: '' });
     });
   }
-}
 
-function clampToIsland(blok: Blok): void {
-  const rx = ISLAND.rx - 24;
-  const ry = ISLAND.ry - 12;
-  const nx = (blok.x - ISLAND.x) / rx;
-  const ny = (blok.y - ISLAND.y) / ry;
-  const d = Math.hypot(nx, ny);
-  if (d > 1) {
-    blok.x = ISLAND.x + (nx / d) * rx;
-    blok.y = ISLAND.y + (ny / d) * ry;
+  private drawBottomBar(): void {
+    this.roundsText = label(this, 1265, 960, `🏁 ${this.rounds} runder`, 52, { color: C.sun }).setDepth(2000);
+    this.hintText = body(this, 1265, 1030, '', 30, { color: C.cream, stroke: 7 }).setDepth(2000);
+    this.soundHint = body(this, W - 30, 30, '🔊 Klik for lyd', 26, { color: C.cream, stroke: 6 }).setOrigin(1, 0).setDepth(2000);
+    this.tweens.add({ targets: this.soundHint, alpha: 0.4, duration: 800, yoyo: true, repeat: -1 });
+    void H;
   }
 }
