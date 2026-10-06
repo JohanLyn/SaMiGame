@@ -763,7 +763,7 @@ export class SvampeScene extends MinigameScene {
     brain.target = null;
   }
 
-  protected botInput(slot: number): BotInput | null {
+  protected botInput(slot: number, dt: number): BotInput | null {
     const d = this.divers.find((x) => x.slot === slot);
     if (!d || d.out || this.phase === 'intro' || this.phase === 'over') return null;
     const brain = this.brains[slot];
@@ -785,7 +785,7 @@ export class SvampeScene extends MinigameScene {
     const dy = (ty - d.y) / 0.6;
     const dist = Math.hypot(dx, dy);
     const onTarget = d.on === s;
-    if (dist < 18 || (onTarget && this.phase === 'free' && dist < 70)) return { x: 0, y: 0, a: false };
+    if (dist < Math.max(18, WALK_SPEED * dt * 0.8) || (onTarget && this.phase === 'free' && dist < 70)) return { x: 0, y: 0, a: false };
     const nx = dx / dist;
     const ny = dy / dist;
     // Hop hvis der er suppe foran (eller man vader)
@@ -794,10 +794,13 @@ export class SvampeScene extends MinigameScene {
       const aheadX = d.x + nx * 60;
       const aheadY = d.y + ny * 0.6 * 60;
       const aheadOn = this.shroomAt(aheadX, aheadY);
-      hop = !d.on || (!aheadOn && dist > 90);
-      if (hop && this.rng() < 0.25) hop = false;
+      // Vader man, hopper man kun hvis målet er langt væk (ellers vader man det sidste stykke)
+      hop = d.on ? !aheadOn && dist > 170 : dist > 130;
+      if (hop && this.rng() < 0.2) hop = false;
     }
     brain.hopWant = !brain.hopWant && hop;
-    return { x: nx, y: ny, a: brain.hopWant };
+    // Blødt ind på pladsen, så man ikke skyder forbi
+    const k = Math.min(1, dist / 70);
+    return { x: nx * k, y: ny * k, a: brain.hopWant };
   }
 }

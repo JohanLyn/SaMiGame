@@ -431,8 +431,7 @@ export class SkrigScene extends MinigameScene {
         this.tweens.add({ targets: crown, scale: 1.1, duration: 400, ease: 'Back.easeOut' });
         w.blok.cheer();
         // Ballonen løfter vinderen en smule
-        this.tweens.add({ targets: [w.blok, w.horn, w.balloon, w.face, w.glow, crown], y: '-=90', duration: 1400, ease: 'Sine.easeOut' });
-        w.knot.y -= 90;
+        this.tweens.add({ targets: [w.blok, w.horn, crown, w.knot], y: '-=90', duration: 1400, ease: 'Sine.easeOut' });
       }
       this.fx.confetti(1500);
       this.sfx('fanfare');

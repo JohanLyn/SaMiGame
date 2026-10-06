@@ -378,7 +378,9 @@ export class FiskeScene extends MinigameScene {
     this.strikeCd = STRIKE_CD;
     this.sfx('whoosh', { pitch: 1.4, pan: this.panFor(this.hook.x) });
     this.sfx('squeak', { pitch: 0.6 });
-    this.tweens.add({ targets: this.rod, angle: ROD_ANGLE - 10, duration: 90, yoyo: true, ease: 'Quad.easeOut' });
+    this.tweens.killTweensOf(this.rod);
+    this.rod.setAngle(ROD_ANGLE);
+    this.tweens.add({ targets: this.rod, angle: ROD_ANGLE - 8, duration: 90, yoyo: true, ease: 'Quad.easeOut' });
     this.fx.burst(this.hook.x, this.hook.y + 60, { texture: 'fi-bubble', count: 6, speed: 220, scale: 0.6, gravity: -300, lifespan: 600 });
     this.vibrate(this.solo.slot, 30);
   }
@@ -412,7 +414,8 @@ export class FiskeScene extends MinigameScene {
       f.x = c.x;
       f.y = c.y + 20;
     };
-    this.tweens.add({ targets: this.rod, angle: ROD_ANGLE - 22, duration: 300, ease: 'Quad.easeOut' });
+    this.tweens.killTweensOf(this.rod);
+    this.tweens.add({ targets: this.rod, angle: ROD_ANGLE - 9, duration: 300, ease: 'Quad.easeOut' });
     this.tweens.add({ targets: f.img, angle: { from: -60, to: -100 }, duration: 110, yoyo: true, repeat: 10 });
     // 1) Op til overfladen
     this.tweens.add({

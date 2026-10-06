@@ -205,7 +205,7 @@ export class KaostaarnScene extends MinigameScene {
   private eelClock = 0;
   private firstStep = true;
   private lastText = -1;
-  private dbgN?: number;
+  private letterbox = 0;
   private cull: (Phaser.GameObjects.Image | Phaser.GameObjects.Container)[] = [];
   private flyover = false;
 
@@ -228,7 +228,6 @@ export class KaostaarnScene extends MinigameScene {
   }
 
   preload(): void {
-    console.log('[kt] preload');
     for (const s of [...SEGMENTS, SOFA]) loadSvg(this, s.key, s.svg(), s.w, s.h);
     loadSvg(this, ROYAL.key, ROYAL.svg(), ROYAL.w, ROYAL.h + 30);
     loadSvg(this, 'kt-trophy', trophySvg(), 300, 380);
@@ -303,8 +302,8 @@ export class KaostaarnScene extends MinigameScene {
     this.slowLeft = 0;
     this.time0 = 0;
     this.lastText = -1;
+    this.letterbox = 0;
 
-    console.log('[kt] setup');
     // Animationer følger uret, også hvis billedraten dykker.
     this.tweens.setLagSmooth(10000, 10000);
     this.buildSky();
@@ -723,8 +722,9 @@ export class KaostaarnScene extends MinigameScene {
     if (c.arrived) return;
     const pad = this.pad(c.p.slot);
     const screenY = this.sy(c.h) - this.camS;
-    const behind = screenY > H - 30;
-    const rubber = behind ? 1.5 : 1;
+    const lead = this.climbers.reduce((m, k) => (k.arrived ? m : Math.max(m, k.h)), 0);
+    const behind = screenY > H - 30 || lead - c.h > 800;
+    const rubber = behind ? 1.6 : 1;
     let climbing = false;
 
     if (c.stun > 0) {
@@ -848,7 +848,6 @@ export class KaostaarnScene extends MinigameScene {
 
   private arrive(c: Climber): void {
     c.arrived = true;
-    console.log('[kt] arrive', c.p.slot, this.elapsed.toFixed(1));
     c.order = this.arrivals.length;
     this.arrivals.push(c.p.slot);
     c.h = TOP_H;
@@ -868,7 +867,6 @@ export class KaostaarnScene extends MinigameScene {
       this.trophyHolder = c.p.slot;
       this.slowLeft = 2.6;
       this.tweens.timeScale = 0.35 * this.speed;
-      this.bars.forEach((bar, i) => this.tweens.add({ targets: bar, y: i === 0 ? 50 : H - 50, duration: 260, ease: 'Cubic.easeOut' }));
       this.fx.flash(0xffffff, 400, 0.8);
       this.fx.shake(0.01, 300);
       this.fx.confetti(3000);
@@ -883,7 +881,7 @@ export class KaostaarnScene extends MinigameScene {
       void this.fx.banner(`${c.p.name.toUpperCase()} ER PÅ TOPPEN!`, {
         color: c.p.color,
         size: 110,
-        hold: 1600,
+        hold: 2200,
         sub: others > 0 ? 'Resten kæmper om pladserne – 15 sek.!' : undefined,
       });
       // Pokalen løftes over hovedet
@@ -908,7 +906,6 @@ export class KaostaarnScene extends MinigameScene {
   private endSlowmo(): void {
     this.slowLeft = 0;
     if (this.running) this.tweens.timeScale = this.speed;
-    this.bars.forEach((bar, i) => this.tweens.add({ targets: bar, y: i === 0 ? -60 : H + 60, duration: 400, ease: 'Cubic.easeIn' }));
     for (const beam of this.beams) this.tweens.add({ targets: beam, alpha: 0, duration: 600, onComplete: () => beam.destroy() });
     this.beams = [];
   }
@@ -1263,7 +1260,7 @@ export class KaostaarnScene extends MinigameScene {
 
   /** "Gæsteoptræden"-skilt når en forhindring fra et andet minigame dukker op. */
   private callout(x: number, y: number, guest: string, line: string): void {
-    const c = this.add.container(Phaser.Math.Clamp(x, 260, W - 300), y).setDepth(6500);
+    const c = this.add.container(Phaser.Math.Clamp(x, 260, W - 300), Phaser.Math.Clamp(y, this.camS + 250, this.camS + H - 220)).setDepth(6500);
     const top = body(this, 0, -40, 'GÆSTEOPTRÆDEN', 24, { stroke: 6, color: C.cream });
     const name = label(this, 0, 6, guest, 44, { color: C.sun });
     const w = Math.max(top.width, name.width) + 60;
@@ -1286,8 +1283,6 @@ export class KaostaarnScene extends MinigameScene {
 
   update(time: number, delta: number): void {
     super.update(time, delta);
-    this.dbgN = (this.dbgN ?? 0) + 1;
-    if (this.dbgN % 10 === 0) console.log('[kt] fps', this.game.loop.actualFps.toFixed(1), 'delta', delta.toFixed(0), 'el', this.elapsed.toFixed(1), 'cam', this.camS.toFixed(0));
     const dt = Math.min(0.05 * this.speed, (delta / 1000) * this.speed);
     this.animate(dt);
   }
@@ -1298,6 +1293,10 @@ export class KaostaarnScene extends MinigameScene {
     this.time0 += dt * slow;
     this.wobble = Math.max(0, this.wobble - dt * 0.35);
     this.updateCamera(dt);
+    // Letterbox under slow-mo
+    this.letterbox += ((this.slowLeft > 0 ? 1 : 0) - this.letterbox) * (1 - Math.exp(-9 * dt));
+    this.bars[0]?.setY(-60 + 112 * this.letterbox);
+    this.bars[1]?.setY(H + 60 - 112 * this.letterbox);
     const s = this.camS;
     const p = Phaser.Math.Clamp(s / S_MIN, 0, 1);
 
@@ -1425,7 +1424,7 @@ export class KaostaarnScene extends MinigameScene {
     const below = !c.arrived && sy > H + 10;
     c.arrow.setVisible(below);
     if (below) {
-      const x = Phaser.Math.Clamp(this.sx(c.x, c.h), 120, W - 200);
+      const x = 480 + c.p.slot * 300;
       c.arrow.setPosition(x, H - 90 + Math.sin(this.time0 * 8 + c.p.slot) * 6);
       c.arrowText.setText(`${c.p.name} ${Math.round((c.h / TOP_H) * 100)} m`);
     }

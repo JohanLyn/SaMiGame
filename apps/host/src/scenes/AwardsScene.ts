@@ -414,9 +414,16 @@ export class AwardsScene extends Phaser.Scene {
       this.sfx('cheer');
       this.crowdJump();
     });
-    const header = title(this, W / 2, 226, 'PRISOVERRÆKKELSE', 76, { color: C.sun }).setDepth(30).setName('header');
-    this.fx.popIn(header, 600);
-    this.tweens.add({ targets: header, scale: 1.04, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: 1000 });
+    const header = title(this, W / 2, 226, 'PRISOVERRÆKKELSE', 76, { color: C.sun }).setDepth(607).setName('header');
+    header.setScale(0);
+    this.tweens.add({
+      targets: header,
+      scale: 1,
+      delay: 600,
+      duration: 380,
+      ease: 'Back.easeOut',
+      onComplete: () => this.tweens.add({ targets: header, scale: 1.04, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }),
+    });
     this.sweepBeams();
     await this.wait(1500);
     if (!this.alive()) return;
@@ -446,7 +453,7 @@ export class AwardsScene extends Phaser.Scene {
       this.tweens.add({ targets: s, alpha: 0.1, scale: s.scale * 0.5, duration: Phaser.Math.Between(600, 1600), yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: Phaser.Math.Between(0, 1500) });
     }
     // Marquee-skilt med blinkende pærer
-    const mq = this.add.image(W / 2, 228, 'aw-marquee').setDepth(10).setScale(0.82);
+    const mq = this.add.image(W / 2, 228, 'aw-marquee').setDepth(605).setScale(0.82);
     void mq;
     for (let i = 0; i < 26; i++) {
       const t = i / 26;
@@ -459,7 +466,7 @@ export class AwardsScene extends Phaser.Scene {
         x = W / 2 + 385 - ((t - 0.5) / 0.5) * 770;
         y = 228 + 66;
       }
-      this.bulbs.push(this.add.image(x, y, 'aw-bulb').setDepth(11).setScale(0.7));
+      this.bulbs.push(this.add.image(x, y, 'aw-bulb').setDepth(606).setScale(0.7));
     }
     // Gulv, scenekant og fodlys
     this.add.image(W / 2, 800, 'aw-floor').setOrigin(0.5, 0).setDepth(100);
@@ -527,7 +534,7 @@ export class AwardsScene extends Phaser.Scene {
 
   private async presentAward(award: AwardWinner, index: number, total: number): Promise<void> {
     const cx = W / 2;
-    const tag = this.ribbon(`BONUSPRIS ${index + 1} AF ${total}`, C.cream, 380);
+    const tag = this.ribbon(`BONUSPRIS ${index + 1} AF ${total}`, C.cream, 345);
     this.sweepBeams();
 
     // Kuverten flyver ind
@@ -538,7 +545,7 @@ export class AwardsScene extends Phaser.Scene {
     const flap = this.add.image(0, -140, 'aw-env-flap').setOrigin(0.5, 0.05);
     env.add([back, card, front, flap]);
     this.sfx('whoosh');
-    this.tweens.add({ targets: env, y: 540, angle: 0, duration: 650, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: env, y: 565, angle: 0, duration: 650, ease: 'Back.easeOut' });
     await this.wait(700);
     if (!this.alive()) return;
     this.sfx('stomp', { volume: 0.5 });
@@ -549,7 +556,7 @@ export class AwardsScene extends Phaser.Scene {
     this.time.delayedCall(1050, () => this.sfx('drumroll', { volume: 1.2 }));
     const shake = this.tweens.add({ targets: env, angle: { from: -3, to: 3 }, duration: 70, yoyo: true, repeat: -1 });
     this.tweens.add({ targets: env, scale: 1.18, duration: 2000, ease: 'Quad.easeIn' });
-    const roll = body(this, cx, 760, 'Og prisen går til…', 42, { stroke: 8 }).setDepth(710).setAlpha(0);
+    const roll = body(this, cx, 790, 'Og prisen går til…', 42, { stroke: 8 }).setDepth(710).setAlpha(0);
     this.tweens.add({ targets: roll, alpha: 1, duration: 300 });
     this.dimTo(0.35, 400);
     await this.wait(2100);
@@ -662,7 +669,6 @@ export class AwardsScene extends Phaser.Scene {
 
     const header = this.children.getByName('header') as Phaser.GameObjects.Text | null;
     this.marquee(header, 'SAMLET STILLING');
-    this.ribbon('DEN SAMLEDE STILLING', C.sun);
     audio.say('Og nu… den samlede stilling!', true);
     this.dimTo(0.3, 500);
     this.sfx('rumble');
@@ -766,11 +772,23 @@ export class AwardsScene extends Phaser.Scene {
     audio.say(`${names} vinder SaMi Party! Klap for vinderen!`, true);
     this.crowdJump(true);
 
+    const header = this.children.getByName('header') as Phaser.GameObjects.Text | null;
+    if (header) {
+      this.tweens.killTweensOf(header);
+      this.tweens.add({ targets: header, alpha: 0, duration: 200 });
+    }
     const ribbonBg = this.add.rectangle(cx, 215, W + 100, 150, N.ink, 0.85).setDepth(1090).setAngle(-3).setScale(0, 1);
     this.tweens.add({ targets: ribbonBg, scaleX: 1, duration: 300, ease: 'Cubic.easeOut' });
     const big = title(this, cx, 206, `${names.toUpperCase()} VINDER!`, names.length > 16 ? 84 : 104, { color: C.sun }).setDepth(1100).setAngle(-3);
-    this.fx.popIn(big, 100);
-    this.tweens.add({ targets: big, scale: 1.06, duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: 600 });
+    big.setScale(0);
+    this.tweens.add({
+      targets: big,
+      scale: 1,
+      delay: 100,
+      duration: 420,
+      ease: 'Back.easeOut',
+      onComplete: () => this.tweens.add({ targets: big, scale: 1.06, duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }),
+    });
     const burst = this.add.image(cx, PODIUM_BASE - PODIUM[0].h - 140, 'aw-rays').setDepth(250).setAlpha(0).setScale(2.2);
     this.tweens.add({ targets: burst, alpha: 0.9, duration: 600 });
     this.tweens.add({ targets: burst, angle: 360, duration: 9000, repeat: -1 });
@@ -878,8 +896,13 @@ export class AwardsScene extends Phaser.Scene {
       onComplete: () => {
         text.setText(value).setScale(1, 0).setAlpha(1);
         this.sfx('select');
-        this.tweens.add({ targets: text, scaleY: 1, duration: 260, ease: 'Back.easeOut' });
-        this.tweens.add({ targets: text, scale: 1.04, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: 300 });
+        this.tweens.add({
+          targets: text,
+          scaleY: 1,
+          duration: 260,
+          ease: 'Back.easeOut',
+          onComplete: () => this.tweens.add({ targets: text, scale: 1.04, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }),
+        });
       },
     });
   }

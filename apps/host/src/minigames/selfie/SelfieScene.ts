@@ -380,7 +380,7 @@ export class SelfieScene extends MinigameScene {
       goal: { x: 0.88, y: 0.5 },
       wait: 0.3 + this.rng() * 0.8,
       speed: 0.75 + this.rng() * 0.45,
-      error: 0.05 + this.rng() * 0.09,
+      error: 0.07 + this.rng() * 0.2,
       pass: 0,
     };
   }
@@ -699,7 +699,7 @@ export class SelfieScene extends MinigameScene {
     if (b.phase === 'reach') {
       if (moveTo(b.goal, b.speed)) {
         b.phase = 'drag';
-        const err = b.error * (b.pass === 0 ? 1 : 0.6);
+        const err = b.error * (b.pass === 0 ? 1 : 0.75);
         const tgt = this.portraitOff[h];
         const want = {
           x: REST[h].x + tgt.x + (this.rng() - 0.5) * 2 * err,

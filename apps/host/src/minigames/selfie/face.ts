@@ -59,10 +59,10 @@ export function similarity(a: Offsets, b: Offsets): number {
   let sum = 0;
   for (const h of HANDLES) {
     const err = Math.hypot(a[h].x - b[h].x, a[h].y - b[h].y);
-    sum += Math.max(0, 1 - err / 0.5);
+    sum += Math.max(0, 1 - err / 0.45);
   }
   const s = sum / HANDLES.length;
-  return Math.round(Math.pow(s, 0.85) * 100);
+  return Math.round(s * 100);
 }
 
 export interface FacePalette {

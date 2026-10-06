@@ -31,7 +31,7 @@ const PIN_V = 0.93;
 const PIN_U_MAX = 0.92;
 const PIN_SPEED = 0.9;
 const PIN_R = 0.1;
-const BALL_R = 0.29;
+const BALL_R = 0.31;
 const BALL_SCREEN = 140;
 const START_V = 0.03;
 const AIM_TIME = 10;
@@ -538,7 +538,7 @@ export class BowlingScene extends MinigameScene {
         const a = live[i];
         const b = live[j];
         const d = b.u - a.u;
-        const min = PIN_R * 2.2;
+        const min = 0.3;
         if (Math.abs(d) < min) {
           const push = (min - Math.abs(d)) / 2;
           const s = Math.sign(d) || 1;
@@ -555,7 +555,7 @@ export class BowlingScene extends MinigameScene {
         p.blok.setPosition(projX(p.u, PIN_V), projY(PIN_V)).setDepth(projY(PIN_V) + p.u);
         p.blok.walk(p.vu / PIN_SPEED, 0, dt * 1000 * 1.6);
       }
-      const s = BLOK_SIZE * projScale(PIN_V);
+      const s = p.blok.size;
       const headY = p.blok.y + (p.blok.rig.y - 186 * s) * p.blok.scaleY;
       p.hat.setPosition(p.blok.x, headY).setDepth(p.blok.depth + 0.5).setAngle(p.blok.rig.angle);
       p.plaster.setPosition(p.blok.x + 26 * s, headY + 28 * s).setDepth(p.blok.depth + 0.6);
@@ -637,8 +637,8 @@ export class BowlingScene extends MinigameScene {
       if (!plan.decided && b.v > 0.4 + this.rng() * 0.3) {
         plan.decided = true;
         plan.react = this.phaseTime + 0.15 + this.rng() * 0.5;
-        plan.jump = this.rng() < 0.25;
-        plan.dir = this.rng() < 0.2 ? -1 : 1; // panik: løber den forkerte vej
+        plan.jump = this.rng() < 0.22;
+        plan.dir = this.rng() < 0.25 ? -1 : 1; // panik: løber den forkerte vej
       }
       if (plan.decided && this.phaseTime >= plan.react) {
         const tLeft = (PIN_V - b.v) / Math.max(0.1, b.vv);
@@ -655,7 +655,7 @@ export class BowlingScene extends MinigameScene {
       return { x: 0, a: false };
     }
     // Mellem kast: drill lidt rundt og gå mod en tilfældig plads
-    const wander = Phaser.Math.Clamp(p.home + Math.sin(this.elapsed * (0.8 + p.player.slot * 0.31) + p.player.slot * 2) * 0.28, -0.85, 0.85);
+    const wander = Phaser.Math.Clamp(p.home + Math.sin(this.elapsed * (0.8 + p.player.slot * 0.31) + p.player.slot * 2) * 0.18, -0.85, 0.85);
     const dx = wander - p.u;
     return { x: Math.abs(dx) > 0.06 ? Phaser.Math.Clamp(dx * 3, -0.7, 0.7) : 0, a: this.phase === 'aim' && this.rng() < 0.004 };
   }

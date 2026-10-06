@@ -166,9 +166,9 @@ export class ToiletScene extends MinigameScene {
     });
 
     // Skammekrogen (fangede spillere)
-    this.add.image(1690, 1062, 'wc-pen').setOrigin(0.5, 1).setDepth(1300);
-    const sign = this.add.image(1690, 1010, 'wc-sign').setDepth(1310).setScale(0.7).setAngle(-3);
-    const signText = label(this, 1690, 1005, 'FANGET', 32).setDepth(1320).setAngle(-3);
+    this.add.image(1740, 1066, 'wc-pen').setOrigin(0.5, 1).setDepth(1300);
+    const sign = this.add.image(1740, 1014, 'wc-sign').setDepth(1310).setScale(0.7).setAngle(-3);
+    const signText = label(this, 1740, 1009, 'FANGET', 32).setDepth(1320).setAngle(-3);
     this.tweens.add({ targets: [sign, signText], angle: 3, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 
     this.buildHud();
@@ -540,8 +540,8 @@ export class ToiletScene extends MinigameScene {
     found.forEach((h, k) => {
       h.blok.sad();
       const slotIndex = caughtCount - found.length + k;
-      const tx = 1580 + slotIndex * 110;
-      const ty = 985;
+      const tx = 1650 + slotIndex * 95;
+      const ty = 990;
       h.blok.setFacing(tx > h.blok.x ? 1 : -1);
       this.tweens.add({
         targets: h.blok,

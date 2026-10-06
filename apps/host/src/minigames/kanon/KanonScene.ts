@@ -560,7 +560,7 @@ export class KanonScene extends MinigameScene {
       r.blok.setAlpha(r.inv > 0 ? (Math.floor(r.inv * 12) % 2 ? 0.35 : 1) : 1);
       const lift = r.blok.rig.y;
       r.heartIcons.forEach((h, k) => {
-        h.setPosition(r.x + (k - 1) * 30, r.y - 205 + lift).setAlpha(k < r.hearts ? 1 : 0.15);
+        h.setPosition(r.x + (k - 1) * 30, r.y - 330 * r.blok.size + lift).setAlpha(k < r.hearts ? 1 : 0.15);
       });
     }
   }
