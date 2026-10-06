@@ -69,3 +69,31 @@ describe('WebSocket-server', () => {
     expect(await res.json()).toEqual({ ok: true, rooms: 0 });
   });
 });
+
+describe('statiske filer', () => {
+  it('serverer TV- og telefon-apps og blokerer path traversal', async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const { join } = await import('node:path');
+    const root = mkdtempSync(join(tmpdir(), 'sami-'));
+    mkdirSync(join(root, 'host'));
+    mkdirSync(join(root, 'ctrl'));
+    writeFileSync(join(root, 'host', 'index.html'), 'TV');
+    writeFileSync(join(root, 'ctrl', 'index.html'), 'TELEFON');
+    writeFileSync(join(root, 'secret.txt'), 'hemmelig');
+    server = createGameServer({
+      staticMounts: [
+        { prefix: '/play/', dir: join(root, 'ctrl') },
+        { prefix: '/', dir: join(root, 'host') },
+      ],
+    });
+    await new Promise<void>((resolve) => server!.http.listen(0, '127.0.0.1', resolve));
+    const { port } = server.http.address() as AddressInfo;
+    const get = (path: string) => fetch(`http://127.0.0.1:${port}${path}`, { redirect: 'manual' });
+    expect(await (await get('/')).text()).toBe('TV');
+    expect(await (await get('/play/?room=ABCD')).text()).toBe('TELEFON');
+    expect((await get('/play')).status).toBe(301);
+    expect(await (await get('/noget/andet')).text()).toBe('TV');
+    expect(await (await get('/..%2fsecret.txt')).text()).not.toBe('hemmelig');
+  });
+});

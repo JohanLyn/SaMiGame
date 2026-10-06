@@ -1,0 +1,7 @@
+# Render.com blueprint: opret en gratis web-service direkte fra dette repo.
+services:
+  - type: web
+    name: sami-party
+    runtime: docker
+    plan: free
+    healthCheckPath: /health

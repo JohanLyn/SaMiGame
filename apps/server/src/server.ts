@@ -2,6 +2,7 @@ import { createServer, type Server } from 'node:http';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { parseClientMessage } from '@samigame/shared';
 import { RoomManager, type PeerRole, type RoomManagerOptions } from './rooms';
+import { serveStatic, type StaticMount } from './static';
 
 const HEARTBEAT_MS = 10_000;
 
@@ -11,14 +12,16 @@ export interface GameServer {
   close(): Promise<void>;
 }
 
-export function createGameServer(options: RoomManagerOptions = {}): GameServer {
+export function createGameServer(options: RoomManagerOptions & { staticMounts?: StaticMount[] } = {}): GameServer {
   const rooms = new RoomManager(options);
+  const mounts = options.staticMounts ?? [];
   const http = createServer((req, res) => {
     if (req.url === '/health') {
       res.writeHead(200, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ ok: true, rooms: rooms.roomCount }));
       return;
     }
+    if (serveStatic(mounts, req, res)) return;
     res.writeHead(404).end();
   });
 
