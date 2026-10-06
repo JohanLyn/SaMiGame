@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { AVATAR_PRESETS, PLAYER_COLORS, hexToNumber, type Avatar, type ControllerLayout } from '@samigame/shared';
-import type { ChaosCard } from '../game/chaos';
+import { CHAOS_CARDS, type ChaosCard } from '../game/chaos';
 import { GameState, type PlayerSeed } from '../game/GameState';
 import { makeTeams } from '../game/teams';
 import { chooseNext } from '../game/selection';
@@ -280,6 +280,8 @@ export class Director {
     const state = this.state!;
     this.finalePlayed = true;
     this.current = { def: this.finale!, teams: null };
+    // Finalen giver altid dobbelt point.
+    state.pendingChaos = CHAOS_CARDS.filter((c) => c.id === 'double');
     this.waitLayouts('FINALE!', 'Gør jer klar…', '🏆');
     this.goto(SCENES.round, { round: state.round, totalRounds: state.totalRounds, players: this.players(), finale: true } satisfies RoundData);
   }
