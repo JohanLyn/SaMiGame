@@ -9,7 +9,7 @@ import { label } from '../../kit/ui';
 import type { Blok } from '../../objects/Blok';
 import { RitualScene } from '../_framework/RitualScene';
 import * as art from './art';
-import { emoji, lures, rand, revealPick, ritualHeader, shout, wait, waitLayout, type Header } from './ritualKit';
+import { emoji, lures, rand, revealPick, ritualHeader, shout, wait, waitLayout, type Header } from '../_framework/ritualKit';
 
 const { dock: DOCK, water: WATER, bed: BED } = art.LAKE;
 const XS = [290, 700, 1110, 1520];

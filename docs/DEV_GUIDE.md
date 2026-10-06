@@ -76,3 +76,9 @@ afsløre `this.pick` (minigamet er allerede valgt) og til sidst kalde `this.done
   - Headless-browseren renderer i software (~5 FPS), så brug `speed=2..4`. Ved konsolfejl afsluttes med kode 1.
   - Kig på screenshots med Read-værktøjet og ret alt der ser billigt ud.
 - I browseren manuelt: `?minigame=<id>&keys=1` (WASD + mellemrum for plads 1, piletaster + Enter for plads 2).
+
+## Timing – vigtigt
+Tween-uret og `time.delayedCall` kan løbe fra hinanden, når spillet hakker (meget tydeligt i headless-browseren).
+Kæd derfor forløb sammen med tweens' `onComplete`/promises i stedet for at stole på at faste `delayedCall`-tider passer
+med animationerne. Fælles ritual-hjælpere (overskrift, råb, lokkemad, "NÆSTE SPIL"-afsløring) ligger i
+`rituals/_framework/ritualKit.ts`.

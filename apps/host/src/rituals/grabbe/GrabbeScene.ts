@@ -7,7 +7,7 @@ import { C, N, W } from '../../kit/theme';
 import { TimerHud, title } from '../../kit/ui';
 import type { Blok } from '../../objects/Blok';
 import { RitualScene } from '../_framework/RitualScene';
-import { emoji, lures, rand, revealPick, ritualHeader, shout, wait, waitLayout, type Header } from '../fiskesoen/ritualKit';
+import { emoji, lures, rand, revealPick, ritualHeader, shout, wait, waitLayout, type Header } from '../_framework/ritualKit';
 import * as art from './art';
 
 const { GLASS, M, CHUTE_X, RAIL_Y } = art;

@@ -53,8 +53,11 @@ export class TransitionScene extends Phaser.Scene {
     if (cover) audio.sfx('whoosh', { volume: 0.6 });
     const maxOrder = Math.max(...this.tiles.map((t) => t.getData('order') as number));
     return new Promise((resolve) => {
+      let remaining = this.tiles.length;
       for (const tile of this.tiles) {
         const order = tile.getData('order') as number;
+        // Stop evt. halvfærdige tweens, så en flise aldrig sidder fast midt i en overgang.
+        this.tweens.killTweensOf(tile);
         this.tweens.add({
           targets: tile,
           scale: cover ? 1 : 0,
@@ -62,9 +65,11 @@ export class TransitionScene extends Phaser.Scene {
           delay: (cover ? order : maxOrder - order) * 18,
           duration: 220,
           ease: cover ? 'Back.easeOut' : 'Back.easeIn',
+          onComplete: () => {
+            if (--remaining === 0) resolve();
+          },
         });
       }
-      this.time.delayedCall(maxOrder * 18 + 260, () => resolve());
     });
   }
 }

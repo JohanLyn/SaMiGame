@@ -10,6 +10,8 @@ export default defineConfig(async () => ({
     port: 5173,
     strictPort: true,
     proxy: { '/ws': { target: serverUrl, ws: true } },
+    // Screenshot-værktøjet slår HMR fra, så andres filændringer ikke genindlæser siden midt i en kørsel.
+    hmr: process.env.NO_HMR ? false : undefined,
   },
   build: {
     chunkSizeWarningLimit: 2500,

@@ -36,13 +36,14 @@ export class Fx {
     this.hitstopUntil = now + ms;
     const { tweens, time } = this.scene;
     const physics = (this.scene as Phaser.Scene & { physics?: { world?: { timeScale: number } } }).physics?.world;
-    tweens.timeScale = 0.02;
-    time.timeScale = 0.02;
-    if (physics) physics.timeScale = 50;
+    const prev = { tweens: tweens.timeScale, time: time.timeScale, physics: physics?.timeScale ?? 1 };
+    tweens.timeScale = prev.tweens * 0.02;
+    time.timeScale = prev.time * 0.02;
+    if (physics) physics.timeScale = prev.physics * 50;
     setTimeout(() => {
-      tweens.timeScale = 1;
-      time.timeScale = 1;
-      if (physics) physics.timeScale = 1;
+      tweens.timeScale = prev.tweens;
+      time.timeScale = prev.time;
+      if (physics) physics.timeScale = prev.physics;
     }, ms);
   }
 

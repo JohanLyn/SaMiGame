@@ -32,11 +32,18 @@ mkdirSync(out, { recursive: true });
 const vite = spawn('npx', ['vite', '--port', String(port), '--strictPort', '--host', '127.0.0.1'], {
   cwd: new URL('../apps/host/', import.meta.url).pathname,
   stdio: ['ignore', 'pipe', 'pipe'],
+  env: { ...process.env, NO_HMR: '1' },
+  detached: true,
 });
 let viteLog = '';
 vite.stdout.on('data', (d) => (viteLog += d));
 vite.stderr.on('data', (d) => (viteLog += d));
-const stop = () => vite.kill('SIGTERM');
+// Dræb hele procesgruppen (npx → vite), så der ikke hænger en gammel server tilbage.
+const stop = () => {
+  try {
+    process.kill(-vite.pid, 'SIGTERM');
+  } catch {}
+};
 process.on('exit', stop);
 
 const url = `http://127.0.0.1:${port}/?${query}&mute`;
