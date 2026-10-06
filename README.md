@@ -1,17 +1,16 @@
-# SaMi Party
+# SaMi Party 🎉
 
-Et gakket Mario Party-inspireret partyspil til 4 spillere, uden spillebræt. Spillet kører i browseren på TV'et, og telefonerne bruges som controllere.
+Et gakket partyspil i stil med Mario Party – **uden spillebræt**. Spillet kører i browseren på et TV eller en storskærm, og op til 4 spillere bruger deres **telefoner som controllere** (scan QR-koden – ingen app). Tomme pladser bliver automatisk til bots.
 
-Se den fulde plan i [docs/PLAN.md](docs/PLAN.md).
+- **Kaos-Karrusellen** i stedet for et bræt: hver runde findes næste minigame gennem et skørt ritual (Fiskesøen, Den Store Væg, Grabbe-automaten, Vulkanen der nyser, Due-posten).
+- **Kaos-kort**: spejlvendt styring, bittesmå figurer, dobbelt point, bytte-bonanza …
+- **Minigames** i tre typer: alle mod alle, 2 mod 2 og 1 mod 3 – plus den store finale, **Kaos-Tårnet**.
+- **Byg-din-Bloks**: byg din egen blokfigur på telefonen (hatte, ansigter, udstyr, farver) eller vælg en af de faste figurer.
+- **Prisoverrækkelse** med bonuspriser, podie og konfetti.
 
-## Status: M0 – skelet ✅
+Design: [docs/PLAN.md](docs/PLAN.md) · Stilguide: [docs/STYLE.md](docs/STYLE.md) · Udviklerguide: [docs/DEV_GUIDE.md](docs/DEV_GUIDE.md) · Status: [docs/PROGRESS.md](docs/PROGRESS.md)
 
-- TV'et opretter et rum og viser rumkode + QR-kode.
-- Op til 4 telefoner joiner ved at scanne QR-koden. Hver får en farve og en blokfigur på øen.
-- Telefonen er en controller med joystick, HOP-knap og B-knap. Figurerne løber rundt, hopper og støder ind i hinanden, og så summer telefonen.
-- Telefoner, der går i dvale eller bliver genindlæst, kommer tilbage på samme plads. Rummet overlever også et kort udfald på TV'et.
-
-## Kom i gang
+## Spil det derhjemme
 
 Kræver Node 22+.
 
@@ -20,38 +19,59 @@ npm install
 npm run dev
 ```
 
-Det starter tre ting:
+1. Åbn **http://localhost:5173** på computeren der er koblet til TV'et (fuld skærm: F11).
+2. Klik én gang på skærmen for at slå lyd til.
+3. Spillerne scanner QR-koden med telefonen (samme wifi som computeren), skriver deres navn og bygger deres figur.
+4. Den første spiller er **kaptajn** og vælger antal runder og trykker **START**. Tomme pladser bliver bots.
 
-| Del | Adresse | Hvad |
-|---|---|---|
-| Spilserver | `http://localhost:3000` | Rum og beskeder mellem TV og telefoner (WebSocket på `/ws`) |
-| TV (host) | `http://localhost:5173` | Åbn denne på computeren/TV'et |
-| Controller | `http://<din-ip>:5174` | Telefonerne kommer hertil via QR-koden |
-
-Telefonerne skal være på **samme wifi** som computeren. QR-koden bruger automatisk computerens LAN-adresse. Har computeren flere netkort, kan du sætte adressen selv i `apps/host/.env.local`:
+Har computeren flere netkort, kan QR-koden pege på den forkerte adresse. Sæt den så selv i `apps/host/.env.local`:
 
 ```
 VITE_CONTROLLER_URL=http://192.168.1.42:5174
 ```
 
-**Test uden telefoner:** Åbn `http://localhost:5173/?keys=1`. Så styres plads 1 med WASD + mellemrum og plads 2 med piletaster + Enter.
+**Gyroskop og mikrofon** (bruges i enkelte minigames) kræver HTTPS på telefonen. Start med `npm run dev:https` og accepter certifikat-advarslen på telefonen – eller brug knapperne, som altid virker som reserve.
 
-## Projektstruktur
+**Taster på TV'et:** `M` slår lyden til/fra · `R` skifter antal runder i lobbyen · `Enter` starter med bots.
 
-```
-apps/host/        TV-appen (Phaser 4 + Vite)
-apps/controller/  Telefon-controlleren (Vite, ren TypeScript/HTML)
-apps/server/      Spilserver (Node + ws): rum, genforbindelse, relay
-packages/shared/  Fælles protokol, konstanter og validering
-e2e/              Playwright-tests der kører TV + telefon i en browser
-```
+## Udgiv spillet online
 
-## Kommandoer
+Hele spillet (server + TV-app + telefon-app) kører fra **én port**:
 
 ```bash
-npm run dev         # start alt
+npm run build     # bygger apps/host og apps/controller
+npm start         # starter serveren på PORT (default 3000)
+```
+
+TV'et åbner `/`, telefonerne kommer til `/play/` via QR-koden.
+
+- **Docker:** `docker build -t sami-party . && docker run -p 3000:3000 sami-party`
+- **Render.com:** forbind GitHub-repoet og vælg "Blueprint" – `render.yaml` opretter en gratis web-service med HTTPS (så virker gyro og mikrofon også).
+
+## Udvikling
+
+```
+apps/host/        TV-appen (Phaser 4 + Vite): scener, minigames, ritualer, grafik-kit, lyd
+apps/controller/  Telefon-controlleren (Vite, ren TypeScript): layouts + Byg-din-Bloks
+apps/server/      Spilserver (Node + ws): rum, genforbindelse, relay, statiske filer
+packages/shared/  Protokol, controller-layouts, avatar-system (SVG), validering
+e2e/              Playwright: TV + telefon spiller et helt spil igennem
+scripts/          dev-runner, screenshot-værktøj, avatar-ark
+```
+
+```bash
+npm run dev         # server + TV + telefon med hot reload
 npm test            # unit-tests (Vitest)
 npm run test:e2e    # end-to-end (Playwright, starter selv serverne)
 npm run typecheck   # TypeScript i alle pakker
-npm run build       # produktionsbuild af host + controller
+npm run shoot -- --query "minigame=sumo" --at 3,8 --out shots/sumo --until-result
 ```
+
+**Dev-genveje på TV'et** (uden server, bots spiller selv):
+`?minigame=<id>` · `?ritual=<id>` · `?scene=round|chaos|teams|intro|results|finale|awards` · `?keys=1` (WASD/piletaster styrer plads 1 og 2) · `?speed=2` · `?mute` · `?autostart` (lobbyen starter selv) · `?rounds=3`.
+
+Nye minigames og ritualer registreres automatisk – se [docs/DEV_GUIDE.md](docs/DEV_GUIDE.md).
+
+## Grafik og ophavsret
+
+Al grafik er tegnet som SVG i kode, og alle figurer er egne. Figurerne er inspireret af blokstilen fra Roblox/Minecraft, men der bruges ingen beskyttede figurer, navne eller assets fra andre spil. Skrifttyper: Lilita One og Nunito (SIL Open Font License). Lydeffekter: ZzFX (MIT).
