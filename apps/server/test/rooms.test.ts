@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { ClientToServer, ServerToController, ServerToHost } from '@samigame/shared';
+import { AVATAR_PRESETS, NEUTRAL_INPUT, type ClientToServer, type ServerToController, type ServerToHost } from '@samigame/shared';
 import { RoomManager, type PeerRole } from '../src/rooms';
 
 class FakePeer {
@@ -73,14 +73,14 @@ describe('RoomManager', () => {
     const b = new FakePeer();
     send(a, { t: 'join', code, name: 'a' });
     send(b, { t: 'join', code, name: 'b' });
-    send(b, { t: 'input', input: { x: 1, y: 0, a: true, b: false } });
-    expect(host.last()).toEqual({ t: 'input', slot: 1, input: { x: 1, y: 0, a: true, b: false } });
+    send(b, { t: 'input', input: { ...NEUTRAL_INPUT, x: 1, a: true } });
+    expect(host.last()).toEqual({ t: 'input', slot: 1, input: { ...NEUTRAL_INPUT, x: 1, a: true } });
   });
 
   it('ignorerer input fra forbindelser der ikke har joinet', () => {
     const { host, send } = setup();
     const before = host.inbox.length;
-    send(new FakePeer(), { t: 'input', input: { x: 1, y: 1, a: false, b: false } });
+    send(new FakePeer(), { t: 'input', input: { ...NEUTRAL_INPUT, x: 1 } });
     expect(host.inbox.length).toBe(before);
   });
 
@@ -165,5 +165,31 @@ describe('RoomManager', () => {
     const tv = new FakePeer();
     send(tv, { t: 'host_resume', code: 'QQQQ' });
     expect(tv.inbox[0].t).toBe('room_created');
+  });
+
+  it('gemmer avatar og navn fra telefonen og husker dem ved genforbindelse', () => {
+    const { host, code, send, disconnect } = setup();
+    const a = new FakePeer();
+    const avatar = AVATAR_PRESETS[2].avatar;
+    send(a, { t: 'join', code, name: 'a' });
+    send(a, { t: 'profile', avatar, name: 'Axel' });
+    expect(host.last()).toEqual({ t: 'player_profile', slot: 0, avatar, name: 'Axel' });
+
+    const joined = a.inbox[0];
+    if (joined.t !== 'joined') throw new Error();
+    disconnect(a);
+    const again = new FakePeer();
+    send(again, { t: 'join', code, name: '', playerId: joined.playerId });
+    expect(host.last()).toMatchObject({ t: 'player_joined', player: { name: 'Axel', avatar } });
+  });
+
+  it('videresender handlinger og layouts', () => {
+    const { host, code, send } = setup();
+    const a = new FakePeer();
+    send(a, { t: 'join', code, name: 'a' });
+    send(a, { t: 'action', name: 'start', value: true });
+    expect(host.last()).toEqual({ t: 'action', slot: 0, name: 'start', value: true });
+    send(host, { t: 'to_player', slot: 0, msg: { t: 'layout', layout: { kind: 'mash', label: 'HAMR!' } } });
+    expect(a.last()).toEqual({ t: 'layout', layout: { kind: 'mash', label: 'HAMR!' } });
   });
 });

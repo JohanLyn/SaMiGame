@@ -1,6 +1,7 @@
 import './style.css';
 import {
   INPUT_HZ,
+  NEUTRAL_INPUT,
   isValidRoomCode,
   normalizeRoomCode,
   type ControllerInput,
@@ -137,10 +138,10 @@ const stick = new Joystick($('stick-zone'), $('stick-base'), $('stick-knob'));
 const buttonA = new HoldButton($('button-a'), () => sendInputNow());
 const buttonB = new HoldButton($('button-b'), () => sendInputNow());
 
-let lastSent: ControllerInput = { x: 0, y: 0, a: false, b: false };
+let lastSent: ControllerInput = { ...NEUTRAL_INPUT };
 
 function currentInput(): ControllerInput {
-  return { x: stick.x, y: stick.y, a: buttonA.pressed, b: buttonB.pressed };
+  return { ...NEUTRAL_INPUT, x: stick.x, y: stick.y, a: buttonA.pressed, b: buttonB.pressed };
 }
 
 function sendInputNow(): void {

@@ -5,6 +5,7 @@ import {
   PLAYER_COLORS,
   generateRoomCode,
   sanitizeName,
+  type Avatar,
   type ClientToServer,
   type PlayerInfo,
   type ServerToController,
@@ -22,6 +23,7 @@ export type ControllerPeer = Peer<ServerToController>;
 interface Slot {
   playerId: string;
   name: string;
+  avatar: Avatar | null;
   peer: ControllerPeer | null;
 }
 
@@ -74,10 +76,25 @@ export class RoomManager {
         return this.resumeRoom(peer, msg.code);
       case 'join':
         if (role.kind !== 'none') return role;
-        return this.join(peer, msg.code, msg.name, msg.playerId);
+        return this.join(peer, msg.code, msg.name, msg.playerId, msg.avatar);
       case 'input': {
         if (role.kind !== 'controller') return role;
         this.rooms.get(role.code)?.host?.send({ t: 'input', slot: role.slot, input: msg.input });
+        return role;
+      }
+      case 'profile': {
+        if (role.kind !== 'controller') return role;
+        const room = this.rooms.get(role.code);
+        const slot = room?.slots[role.slot];
+        if (!room || !slot) return role;
+        slot.avatar = msg.avatar;
+        if (msg.name !== undefined) slot.name = sanitizeName(msg.name, slot.name);
+        room.host?.send({ t: 'player_profile', slot: role.slot, avatar: msg.avatar, name: slot.name });
+        return role;
+      }
+      case 'action': {
+        if (role.kind !== 'controller') return role;
+        this.rooms.get(role.code)?.host?.send({ t: 'action', slot: role.slot, name: msg.name, value: msg.value });
         return role;
       }
       case 'to_player': {
@@ -130,7 +147,7 @@ export class RoomManager {
     return { kind: 'host', code };
   }
 
-  private join(peer: ControllerPeer, code: string, rawName: string, playerId?: string): PeerRole {
+  private join(peer: ControllerPeer, code: string, rawName: string, playerId?: string, avatar?: Avatar): PeerRole {
     const room = this.rooms.get(code);
     if (!room) {
       peer.send({ t: 'error', reason: 'room_not_found' });
@@ -153,8 +170,9 @@ export class RoomManager {
     const previous = room.slots[index];
     const slot: Slot = reconnected && previous
       ? { ...previous, peer }
-      : { playerId: randomUUID(), name: sanitizeName(rawName, `Spiller ${index + 1}`), peer };
+      : { playerId: randomUUID(), name: sanitizeName(rawName, `Spiller ${index + 1}`), avatar: null, peer };
     if (reconnected && rawName.trim()) slot.name = sanitizeName(rawName, slot.name);
+    if (avatar) slot.avatar = avatar;
     room.slots[index] = slot;
 
     const info = this.playerInfo(index, slot);
@@ -182,7 +200,7 @@ export class RoomManager {
   }
 
   private playerInfo(index: number, slot: Slot): PlayerInfo {
-    return { slot: index, name: slot.name, color: PLAYER_COLORS[index].hex, connected: slot.peer !== null };
+    return { slot: index, name: slot.name, color: PLAYER_COLORS[index].hex, connected: slot.peer !== null, avatar: slot.avatar };
   }
 
   /** Rydder timere – bruges når serveren lukkes. */

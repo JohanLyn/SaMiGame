@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseClientMessage, sanitizeName } from '../src';
+import { AVATAR_PRESETS, NEUTRAL_INPUT, parseAvatar, parseClientMessage, sanitizeName } from '../src';
 
 describe('parseClientMessage', () => {
   it('afviser ikke-JSON og ukendte typer', () => {
@@ -9,13 +9,13 @@ describe('parseClientMessage', () => {
   });
 
   it('klemmer joystick-værdier og kræver ægte booleans', () => {
-    const msg = parseClientMessage(JSON.stringify({ t: 'input', input: { x: 5, y: -9, a: 'ja', b: true } }));
-    expect(msg).toEqual({ t: 'input', input: { x: 1, y: -1, a: false, b: true } });
+    const msg = parseClientMessage(JSON.stringify({ t: 'input', input: { x: 5, y: -9, a: 'ja', b: true, level: 3, px: -1 } }));
+    expect(msg).toEqual({ t: 'input', input: { ...NEUTRAL_INPUT, x: 1, y: -1, b: true, level: 1, px: 0 } });
   });
 
   it('erstatter ikke-endelige tal med 0', () => {
     const msg = parseClientMessage('{"t":"input","input":{"x":null,"y":"1"}}');
-    expect(msg).toEqual({ t: 'input', input: { x: 0, y: 0, a: false, b: false } });
+    expect(msg).toEqual({ t: 'input', input: NEUTRAL_INPUT });
   });
 
   it('normaliserer rumkoden ved join', () => {
@@ -24,6 +24,7 @@ describe('parseClientMessage', () => {
       code: 'ABCD',
       name: 'Sami',
       playerId: undefined,
+      avatar: undefined,
     });
     expect(parseClientMessage(JSON.stringify({ t: 'join', code: 'nope!', name: 'x' }))).toBeNull();
   });
@@ -44,5 +45,28 @@ describe('sanitizeName', () => {
     expect(sanitizeName('Ridder Agurk den Store', 'X')).toBe('Ridder Agurk');
     expect(sanitizeName('   ', 'Spiller 1')).toBe('Spiller 1');
     expect(sanitizeName(42, 'Spiller 2')).toBe('Spiller 2');
+  });
+});
+
+describe('profiler, handlinger og layouts', () => {
+  it('accepterer kun avatarer fra paletterne', () => {
+    const avatar = AVATAR_PRESETS[0].avatar;
+    expect(parseAvatar(avatar)).toEqual(avatar);
+    expect(parseAvatar({ ...avatar, skin: '#123456' })).toBeNull();
+    expect(parseAvatar({ ...avatar, hat: 'rocket' })).toBeNull();
+    expect(parseClientMessage(JSON.stringify({ t: 'profile', avatar: { ...avatar, face: 'x' } }))).toBeNull();
+  });
+
+  it('validerer handlingsnavne', () => {
+    expect(parseClientMessage(JSON.stringify({ t: 'action', name: 'start', value: true }))).toEqual({ t: 'action', name: 'start', value: true });
+    expect(parseClientMessage(JSON.stringify({ t: 'action', name: 'Start!', value: 1 }))).toBeNull();
+    expect(parseClientMessage(JSON.stringify({ t: 'action', name: 'rounds', value: {} }))).toBeNull();
+  });
+
+  it('afviser ukendte og for store layouts', () => {
+    const send = (layout: unknown) => parseClientMessage(JSON.stringify({ t: 'to_player', slot: 0, msg: { t: 'layout', layout } }));
+    expect(send({ kind: 'mash', label: 'Hamr!' })).not.toBeNull();
+    expect(send({ kind: 'nuke' })).toBeNull();
+    expect(send({ kind: 'info', title: 'x', lines: ['y'.repeat(7000)] })).toBeNull();
   });
 });

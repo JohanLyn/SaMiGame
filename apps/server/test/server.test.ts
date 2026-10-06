@@ -50,8 +50,8 @@ describe('WebSocket-server', () => {
     expect(await phone.next('joined')).toMatchObject({ slot: 0, name: 'Bent' });
     expect(await tv.next('player_joined')).toMatchObject({ player: { slot: 0, name: 'Bent' } });
 
-    phone.send({ t: 'input', input: { x: 0.5, y: -0.25, a: true, b: false } });
-    expect(await tv.next('input')).toEqual({ t: 'input', slot: 0, input: { x: 0.5, y: -0.25, a: true, b: false } });
+    phone.send({ t: 'input', input: { x: 0.5, y: -0.25, a: true, b: false, taps: 3 } });
+    expect(await tv.next('input')).toMatchObject({ t: 'input', slot: 0, input: { x: 0.5, y: -0.25, a: true, b: false, taps: 3 } });
 
     phone.send('ikke json');
     expect(await phone.next('error')).toEqual({ t: 'error', reason: 'bad_message' });

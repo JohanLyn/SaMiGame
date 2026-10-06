@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { ControllerInput } from '@samigame/shared';
+import { NEUTRAL_INPUT, type ControllerInput } from '@samigame/shared';
 
 /**
  * Udvikler-værktøj (?keys=1): styr plads 1 med WASD + mellemrum/Q og plads 2 med piletaster + Enter/Shift,
@@ -31,6 +31,6 @@ export class KeyboardPlayers {
       x *= Math.SQRT1_2;
       y *= Math.SQRT1_2;
     }
-    return { x, y, a: keys.a.isDown, b: keys.b.isDown };
+    return { ...NEUTRAL_INPUT, x, y, a: keys.a.isDown, b: keys.b.isDown };
   }
 }
