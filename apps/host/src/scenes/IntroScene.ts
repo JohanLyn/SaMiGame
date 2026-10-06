@@ -58,10 +58,10 @@ export class IntroScene extends Phaser.Scene {
     const t = title(this, 620, 370, def.title, 96, { color: def.color, wrap: 960 });
     if (t.width > 980) t.setScale(980 / t.width);
     const kind = label(this, 620, 455, KIND_LABEL[def.kind], 40, { color: C.sun });
-    body(this, 620, 515, def.tagline, 36, { color: C.cream, wrap: 900 });
+    body(this, 620, 530, def.tagline, 36, { color: C.cream, wrap: 900 });
     for (const o of [icon, t, kind]) this.fx.popIn(o);
 
-    let y = 600;
+    let y = 625;
     for (const rule of def.rules) {
       const r = body(this, 160, y, `•  ${rule}`, 34, { align: 'left', wrap: 900 }).setOrigin(0, 0);
       y += r.height + 12;
@@ -85,7 +85,8 @@ export class IntroScene extends Phaser.Scene {
       const b = new Blok(this, 1330, y + 70, p.avatar, { size: 0.62 });
       this.bloks.push(b);
       label(this, 1420, y - 30, p.name, 38, { color: '#ffffff' }).setOrigin(0, 0.5);
-      body(this, 1420, y + 22, roleLabel(p), 26, { color: teamColor, stroke: 6 }).setOrigin(0, 0.5);
+      if (p.role !== 'ffa') this.add.circle(1432, y + 24, 12, Phaser.Display.Color.HexStringToColor(teamColor).color).setStrokeStyle(4, N.ink);
+      body(this, p.role === 'ffa' ? 1420 : 1452, y + 22, roleLabel(p), 26, { color: C.cream, stroke: 6 }).setOrigin(0, 0.5);
       const check = title(this, 1790, y, '…', 64, { color: C.cream });
       this.checks.push(check);
       if (p.isBot) this.time.delayedCall(600 + Math.random() * 1600, () => this.markReady(i));

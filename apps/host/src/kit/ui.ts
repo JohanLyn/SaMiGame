@@ -79,7 +79,7 @@ export function panelSvg(w: number, h: number, color: string, opts: { radius?: n
     Hh,
     `<rect x="${x}" y="${y + sh}" width="${w}" height="${h}" rx="${r}" fill="#000" opacity="0.35"/>` +
       `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="url(#p)" ${ink(sw)}/>` +
-      `<rect x="${x + sw}" y="${y + sw}" width="${w - sw * 2}" height="${h * 0.42}" rx="${Math.max(4, r - sw)}" fill="#fff" opacity="0.12"/>` +
+      `<rect x="${x + sw}" y="${y + sw}" width="${w - sw * 2}" height="${Math.min(h * 0.42, 70)}" rx="${Math.max(4, r - sw)}" fill="#fff" opacity="0.1"/>` +
       shine(x + r * 0.7, y + sw + 6, Math.min(w * 0.3, 160), Math.max(6, Math.min(14, h * 0.06)), 0.35),
     linear('p', shade(color, 0.18), shade(color, -0.22)),
   );

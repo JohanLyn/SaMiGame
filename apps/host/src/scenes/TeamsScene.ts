@@ -87,7 +87,7 @@ export class TeamsScene extends Phaser.Scene {
         : { left: teams.teams[0], right: teams.teams[1] };
       const place = (slots: number[], centerX: number, teamIdx: number) => {
         slots.forEach((slot, i) => {
-          const x = centerX + (i - (slots.length - 1) / 2) * 230;
+          const x = centerX + (i - (slots.length - 1) / 2) * (slots.length > 2 ? 250 : 300);
           const b = bloks[slot];
           this.tweens.add({ targets: b, x, duration: 600, ease: 'Back.easeOut', onComplete: () => b.cheer() });
           b.setRing(solo ? (teamIdx === 0 ? C.sun : C.sky) : TEAM_HEX[teamIdx]);
