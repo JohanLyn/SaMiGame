@@ -3,13 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#1b2a6b" />
+    <meta name="theme-color" content="#1a1446" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <title>SaMi Party – controller</title>
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>SaMi Party</title>
   </head>
   <body>
     <section id="join-screen" class="screen">
-      <h1>SaMi <span>Party</span></h1>
+      <div class="logo"><span class="logo-a">SaMi</span><span class="logo-b">PARTY</span></div>
       <form id="join-form" autocomplete="off">
         <label>
           Rumkode
@@ -19,25 +20,18 @@
           Dit navn
           <input id="name-input" name="name" maxlength="12" placeholder="Turbo-Mormor" />
         </label>
-        <button type="submit" id="join-button">Hop ind!</button>
+        <button type="submit" id="join-button" class="btn btn-big">Hop ind!</button>
         <p id="join-error" class="error" role="alert"></p>
       </form>
     </section>
 
-    <section id="pad-screen" class="screen" hidden>
-      <header id="pad-header">
-        <span id="player-badge"></span>
-        <span id="status-text"></span>
+    <section id="game-screen" class="screen" hidden>
+      <header id="bar">
+        <img id="bar-avatar" alt="" />
+        <span id="bar-name"></span>
+        <span id="bar-status"></span>
       </header>
-      <div id="stick-zone" aria-label="Joystick">
-        <div id="stick-base"><div id="stick-knob"></div></div>
-        <p class="hint">Træk for at gå</p>
-      </div>
-      <p id="rotate-hint">Drej telefonen på langs for den bedste controller ↻</p>
-      <div id="buttons">
-        <button id="button-b" class="pad-button" aria-label="B">B</button>
-        <button id="button-a" class="pad-button" aria-label="A">HOP</button>
-      </div>
+      <main id="layout"></main>
     </section>
 
     <div id="overlay" hidden><p id="overlay-text"></p></div>

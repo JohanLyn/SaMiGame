@@ -3,7 +3,7 @@ import { AVATAR_PRESETS } from '@samigame/shared';
 import { preloadKitTextures } from '../kit/textures';
 import { preloadScenery } from '../kit/scenery';
 import { C, FONT_BODY, FONT_DISPLAY, H, N, W } from '../kit/theme';
-import { ensureAvatarTextures } from '../objects/Blok';
+import { ensureAvatarTextures, preloadAvatarTextures } from '../objects/Blok';
 import type { Director } from '../flow/Director';
 
 /** Indlæser skrifttyper og fælles grafik, og sender videre til lobbyen (eller dev-scenen). */
@@ -19,6 +19,7 @@ export class BootScene extends Phaser.Scene {
     this.load.on('progress', (p: number) => (bar.width = 600 * p));
     preloadKitTextures(this);
     preloadScenery(this);
+    for (const p of AVATAR_PRESETS) preloadAvatarTextures(this, p.avatar);
   }
 
   async create(): Promise<void> {

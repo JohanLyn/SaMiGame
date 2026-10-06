@@ -80,7 +80,8 @@ export abstract class PlayScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     if (!this.router) return;
-    const dt = Math.min(0.05, delta / 1000) * this.speed;
+    const dt = Math.min(0.05 * this.speed, (delta / 1000) * this.speed);
+
     this.poll(dt);
     if (this.playing) {
       this.elapsed += dt;

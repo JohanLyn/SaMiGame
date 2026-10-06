@@ -307,14 +307,17 @@ export class Director {
 
   goto(key: string, data?: object): void {
     const transition = this.game.scene.getScene(SCENES.transition) as TransitionScene;
-    void transition.cover().then(() => {
-      for (const scene of this.game.scene.getScenes(true)) {
-        if (scene.scene.key !== SCENES.transition) scene.scene.stop();
-      }
-      this.game.scene.start(key, data);
-      this.game.scene.bringToTop(SCENES.transition);
-      void transition.uncover();
-    });
+    void transition
+      .cover()
+      .then(() => {
+        for (const scene of this.game.scene.getScenes(true)) {
+          if (scene.scene.key !== SCENES.transition) scene.scene.stop();
+        }
+        this.game.scene.start(key, data);
+        this.game.scene.bringToTop(SCENES.transition);
+        void transition.uncover();
+      })
+      .catch((err) => console.error('Sceneskift fejlede', key, err));
   }
 
   // ---------------------------------------------------------------------------

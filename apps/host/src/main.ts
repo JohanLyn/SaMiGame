@@ -7,7 +7,7 @@ import { H, W } from './kit/theme';
 import { MINIGAMES } from './minigames';
 import { RITUALS } from './rituals';
 import { FallbackRitual } from './rituals/_framework/FallbackRitual';
-import { net } from './net';
+import { net, offline } from './net';
 import { AwardsScene } from './scenes/AwardsScene';
 import { BootScene } from './scenes/BootScene';
 import { ChaosScene } from './scenes/ChaosScene';
@@ -25,7 +25,10 @@ const game = new Phaser.Game({
   height: H,
   backgroundColor: '#12103a',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-  render: { antialias: true, roundPixels: false },
+  render: { antialias: true, roundPixels: false, // maxTextures: 1 undgår en fejl i Phaser 4's multi-tekstur-batching (trekanter med forkert tekstur).
+    maxTextures: Number(new URLSearchParams(location.search).get('maxtex') ?? 1) },
+  // I test/dev (offline) bruges rå delta, så spillet kører i realtid selv ved lav FPS (headless-browsere).
+  fps: offline || new URLSearchParams(location.search).has('rawdelta') ? { smoothStep: false, panicMax: 0 } : undefined,
   physics: { default: 'arcade', arcade: { gravity: { x: 0, y: 0 } } },
   scene: [
     BootScene,

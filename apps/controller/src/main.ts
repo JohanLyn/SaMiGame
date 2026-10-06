@@ -1,31 +1,57 @@
+import '@fontsource/lilita-one/400.css';
+import '@fontsource/nunito/800.css';
+import '@fontsource/nunito/900.css';
 import './style.css';
 import {
+  AVATAR_PRESETS,
   INPUT_HZ,
-  NEUTRAL_INPUT,
   isValidRoomCode,
   normalizeRoomCode,
-  type ControllerInput,
+  parseAvatar,
+  renderAvatarSvg,
+  svgDataUri,
+  type Avatar,
+  type ControllerLayout,
   type ControllerToServer,
   type ErrorReason,
   type ServerToController,
 } from '@samigame/shared';
 import { ReconnectingSocket, defaultSocketUrl } from '@samigame/shared/browser';
-import { HoldButton, Joystick } from './joystick';
+import {
+  renderButtons,
+  renderChoice,
+  renderInfo,
+  renderMash,
+  renderMic,
+  renderReady,
+  renderResult,
+  renderStick,
+  renderTilt,
+  renderTouchpad,
+  renderWait,
+  type Cleanup,
+} from './layouts/basic';
+import { renderLobby } from './layouts/lobby';
 import { loadName, loadSession, saveName, saveSession } from './session';
+import { input, resetInput, type Ctx } from './state';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 const joinScreen = $('join-screen');
-const padScreen = $('pad-screen');
+const gameScreen = $('game-screen');
 const form = $<HTMLFormElement>('join-form');
 const codeInput = $<HTMLInputElement>('code-input');
 const nameInput = $<HTMLInputElement>('name-input');
 const joinButton = $<HTMLButtonElement>('join-button');
 const joinError = $('join-error');
-const badge = $('player-badge');
-const statusText = $('status-text');
+const layoutRoot = $('layout');
+const barAvatar = $<HTMLImageElement>('bar-avatar');
+const barName = $('bar-name');
+const barStatus = $('bar-status');
 const overlay = $('overlay');
 const overlayText = $('overlay-text');
+
+const AVATAR_KEY = 'sami.avatar';
 
 const ERROR_TEXT: Record<ErrorReason, string> = {
   room_not_found: 'Det rum findes ikke. Tjek koden på TV’et.',
@@ -33,14 +59,59 @@ const ERROR_TEXT: Record<ErrorReason, string> = {
   bad_message: 'Noget gik galt. Prøv igen.',
 };
 
+function loadAvatar(): Avatar {
+  try {
+    const a = parseAvatar(JSON.parse(localStorage.getItem(AVATAR_KEY) ?? 'null'));
+    if (a) return a;
+  } catch {
+    // ignorer
+  }
+  return { ...AVATAR_PRESETS[Math.floor(Math.random() * AVATAR_PRESETS.length)].avatar };
+}
+
+function saveAvatar(a: Avatar): void {
+  try {
+    localStorage.setItem(AVATAR_KEY, JSON.stringify(a));
+  } catch {
+    // ignorer
+  }
+}
+
 const socket = new ReconnectingSocket<ServerToController, ControllerToServer>(defaultSocketUrl());
 
-/** Rummet vi er i (eller er ved at joine). null = vis join-skærmen. */
 let target: { code: string; name: string } | null = null;
 let joined = false;
 let hostConnected = true;
+let currentLayout: ControllerLayout | null = null;
+let currentKey = '';
+let cleanup: Cleanup = () => {};
 
-// ---- Join ----
+const ctx: Ctx = {
+  input,
+  tap(choice?: number) {
+    input.taps++;
+    if (choice !== undefined) input.choice = choice;
+    sendInput(true);
+  },
+  action(name, value) {
+    socket.send({ t: 'action', name, value });
+  },
+  profile(avatar, name) {
+    ctx.player.avatar = avatar;
+    ctx.player.name = name;
+    saveAvatar(avatar);
+    saveName(name);
+    updateBar();
+    socket.send({ t: 'profile', avatar, name });
+  },
+  player: { name: loadName(), color: '#ffcf3a', avatar: loadAvatar(), slot: 0 },
+  vibrate(ms) {
+    navigator.vibrate?.(ms);
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Join
 
 const urlCode = normalizeRoomCode(new URLSearchParams(location.search).get('room') ?? '');
 const saved = loadSession();
@@ -56,6 +127,7 @@ form.addEventListener('submit', (e) => {
   }
   const name = nameInput.value.trim();
   saveName(name);
+  ctx.player.name = name;
   joinError.textContent = '';
   joinButton.disabled = true;
   target = { code, name };
@@ -67,7 +139,7 @@ function sendJoin(): void {
   if (!target) return;
   const session = loadSession();
   const playerId = session?.code === target.code ? session.playerId : undefined;
-  socket.send({ t: 'join', code: target.code, name: target.name, playerId });
+  socket.send({ t: 'join', code: target.code, name: target.name, playerId, avatar: ctx.player.avatar });
 }
 
 function leaveRoom(message: string): void {
@@ -76,12 +148,14 @@ function leaveRoom(message: string): void {
   saveSession(null);
   joinButton.disabled = false;
   joinError.textContent = message;
-  padScreen.hidden = true;
+  gameScreen.hidden = true;
   joinScreen.hidden = false;
   overlay.hidden = true;
+  setLayout(null);
 }
 
-// ---- Netværk ----
+// ---------------------------------------------------------------------------
+// Netværk
 
 socket.onOpen = () => sendJoin();
 socket.onStatus = (connected) => {
@@ -94,7 +168,12 @@ socket.onMessage = (msg) => {
     case 'joined':
       joined = true;
       saveSession({ code: msg.code, playerId: msg.playerId });
-      showPad(msg.name, msg.color);
+      ctx.player.name = msg.name;
+      ctx.player.color = msg.color;
+      ctx.player.slot = msg.slot;
+      document.documentElement.style.setProperty('--player', msg.color);
+      socket.send({ t: 'profile', avatar: ctx.player.avatar, name: msg.name });
+      showGame();
       break;
     case 'error':
       leaveRoom(ERROR_TEXT[msg.reason]);
@@ -107,7 +186,10 @@ socket.onMessage = (msg) => {
       leaveRoom('TV’et lukkede rummet. Scan den nye QR-kode.');
       break;
     case 'vibrate':
-      navigator.vibrate?.(msg.ms);
+      ctx.vibrate(msg.ms);
+      break;
+    case 'layout':
+      setLayout(msg.layout);
       break;
   }
 };
@@ -119,55 +201,99 @@ function updateOverlay(socketConnected: boolean): void {
   else if (joined && !hostConnected) text = 'Venter på TV’et…';
   overlay.hidden = text === '';
   overlayText.textContent = text;
-  statusText.textContent = joined && hostConnected ? `Rum ${target.code}` : '';
+  barStatus.textContent = joined && hostConnected ? `Rum ${target.code}` : '';
 }
 
-function showPad(name: string, color: string): void {
+function updateBar(): void {
+  barName.textContent = ctx.player.name;
+  barAvatar.src = svgDataUri(renderAvatarSvg(ctx.player.avatar, { idPrefix: 'b' }));
+}
+
+function showGame(): void {
   joinScreen.hidden = true;
-  padScreen.hidden = false;
-  document.documentElement.style.setProperty('--player', color);
-  badge.textContent = name;
+  gameScreen.hidden = false;
+  updateBar();
   updateOverlay(socket.connected);
-  navigator.vibrate?.(30);
+  ctx.vibrate(30);
   void keepAwake();
+  if (!currentLayout) setLayout({ kind: 'wait', title: 'Du er med!', message: 'Kig på TV’et', emoji: '🎉' });
 }
 
-// ---- Controller ----
+// ---------------------------------------------------------------------------
+// Layouts
 
-const stick = new Joystick($('stick-zone'), $('stick-base'), $('stick-knob'));
-const buttonA = new HoldButton($('button-a'), () => sendInputNow());
-const buttonB = new HoldButton($('button-b'), () => sendInputNow());
+const RENDERERS: { [K in ControllerLayout['kind']]: (root: HTMLElement, l: Extract<ControllerLayout, { kind: K }>, ctx: Ctx) => Cleanup } = {
+  wait: renderWait,
+  lobby: renderLobby,
+  ready: renderReady,
+  stick: renderStick,
+  buttons: renderButtons,
+  mash: renderMash,
+  touchpad: renderTouchpad,
+  tilt: renderTilt,
+  mic: renderMic,
+  info: renderInfo,
+  choice: renderChoice,
+  result: renderResult,
+};
 
-let lastSent: ControllerInput = { ...NEUTRAL_INPUT };
-
-function currentInput(): ControllerInput {
-  return { ...NEUTRAL_INPUT, x: stick.x, y: stick.y, a: buttonA.pressed, b: buttonB.pressed };
+function setLayout(layout: ControllerLayout | null): void {
+  const key = JSON.stringify(layout);
+  if (key === currentKey) return;
+  currentKey = key;
+  cleanup();
+  cleanup = () => {};
+  resetInput();
+  sendInput(true);
+  currentLayout = layout;
+  layoutRoot.innerHTML = '';
+  layoutRoot.className = layout ? `layout-${layout.kind}` : '';
+  if (!layout) return;
+  document.documentElement.style.setProperty('--accent', layout.accent ?? 'var(--player)');
+  const page = document.createElement('div');
+  page.className = 'page enter';
+  layoutRoot.append(page);
+  const render = RENDERERS[layout.kind] as (root: HTMLElement, l: ControllerLayout, ctx: Ctx) => Cleanup;
+  try {
+    cleanup = render(page, layout, ctx);
+  } catch (err) {
+    console.error('Layout fejlede', layout, err);
+  }
 }
 
-function sendInputNow(): void {
+// ---------------------------------------------------------------------------
+// Input → TV (højst INPUT_HZ gange i sekundet, kun ved ændringer)
+
+let lastSent = '';
+let lastSendTime = 0;
+function sendInput(force = false): void {
   if (!joined) return;
-  const input = currentInput();
-  if (input.x === lastSent.x && input.y === lastSent.y && input.a === lastSent.a && input.b === lastSent.b) return;
-  lastSent = input;
-  socket.send({ t: 'input', input });
+  const key = `${input.x},${input.y},${input.a},${input.b},${input.taps},${input.choice},${input.px.toFixed(3)},${input.py.toFixed(3)},${input.level.toFixed(2)}`;
+  if (key === lastSent) return;
+  const now = performance.now();
+  if (!force && now - lastSendTime < 1000 / INPUT_HZ) return;
+  lastSent = key;
+  lastSendTime = now;
+  socket.send({ t: 'input', input: { ...input } });
 }
+setInterval(() => sendInput(), 1000 / INPUT_HZ);
 
-setInterval(sendInputNow, 1000 / INPUT_HZ);
-
-// ---- Telefon-ting ----
+// ---------------------------------------------------------------------------
+// Telefon-ting
 
 async function enterFullscreen(): Promise<void> {
   try {
     if (!document.fullscreenElement) await document.documentElement.requestFullscreen?.();
   } catch {
-    // Ikke understøttet (fx iPhone) – helt fint.
+    // Ikke understøttet (fx iPhone).
   }
 }
 
 let wakeLock: { release(): Promise<void> } | null = null;
 async function keepAwake(): Promise<void> {
   try {
-    wakeLock ??= await (navigator as Navigator & { wakeLock?: { request(type: 'screen'): Promise<{ release(): Promise<void> }> } }).wakeLock?.request('screen') ?? null;
+    const nav = navigator as Navigator & { wakeLock?: { request(type: 'screen'): Promise<{ release(): Promise<void> }> } };
+    wakeLock ??= (await nav.wakeLock?.request('screen')) ?? null;
   } catch {
     // ignorer
   }

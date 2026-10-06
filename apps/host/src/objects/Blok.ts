@@ -9,7 +9,7 @@ import {
   type Avatar,
   type AvatarPart,
 } from '@samigame/shared';
-import { addSvg } from '../kit/svg';
+import { addSvg, loadSvg } from '../kit/svg';
 import { TEX } from '../kit/textures';
 import { nameTag } from '../kit/ui';
 
@@ -31,6 +31,13 @@ export async function ensureAvatarTextures(scene: Phaser.Scene, a: Avatar): Prom
     ...parts.map((p) => addSvg(scene, partKey(a, p), renderAvatarPart(a, p), PART_BOXES[p].w * TEX_SCALE, PART_BOXES[p].h * TEX_SCALE)),
     addSvg(scene, partKey(a, 'blink'), renderAvatarPart(a, 'head', { blink: true }), PART_BOXES.head.w * TEX_SCALE, PART_BOXES.head.h * TEX_SCALE),
   ]);
+}
+
+/** Indlæs en avatars teksturer via Phaser's loader (i `preload()`). */
+export function preloadAvatarTextures(scene: Phaser.Scene, a: Avatar): void {
+  const parts: AvatarPart[] = ['head', 'torso', 'arm', 'leg', ...(hasBackPart(a) ? (['back'] as const) : [])];
+  for (const p of parts) loadSvg(scene, partKey(a, p), renderAvatarPart(a, p), PART_BOXES[p].w * TEX_SCALE, PART_BOXES[p].h * TEX_SCALE);
+  loadSvg(scene, partKey(a, 'blink'), renderAvatarPart(a, 'head', { blink: true }), PART_BOXES.head.w * TEX_SCALE, PART_BOXES.head.h * TEX_SCALE);
 }
 
 export function avatarTexturesReady(scene: Phaser.Scene, a: Avatar): boolean {
@@ -137,6 +144,12 @@ export class Blok extends Phaser.GameObjects.Container {
     const torso = img('torso');
     const head = img('head');
     this.parts = { head, torso, armL, armR, legL, legR, back };
+    // Husk basis-position og spejling, så vi kan vende figuren uden negativ skala
+    // (Phaser 4 tegner billeder forkert i containere med negativ scaleX).
+    for (const part of [head, torso, armL, armR, legL, legR, back]) {
+      if (part) part.setData('baseX', part.x).setData('baseFlip', part.flipX).setData('baseOX', part.originX);
+    }
+    this.applyFacing();
     this.rig.add([...(back ? [back] : []), legL, legR, armL, armR, torso, head]);
     if (this.tag) this.tag.y = -270 * this.size;
   }
@@ -172,9 +185,25 @@ export class Blok extends Phaser.GameObjects.Container {
   }
 
   setFacing(dir: 1 | -1): this {
+    if (this.facing === dir) return this;
     this.facing = dir;
-    this.rig.scaleX = Math.abs(this.rig.scaleX) * dir;
+    this.applyFacing();
     return this;
+  }
+
+  private applyFacing(): void {
+    const p = this.parts;
+    if (!p) return;
+    const mirror = this.facing < 0;
+    for (const part of [p.head, p.torso, p.armL, p.armR, p.legL, p.legR, p.back]) {
+      if (!part) continue;
+      const baseX = part.getData('baseX') as number;
+      const baseFlip = part.getData('baseFlip') as boolean;
+      const baseOX = part.getData('baseOX') as number;
+      part.x = mirror ? -baseX : baseX;
+      part.setFlipX(mirror ? !baseFlip : baseFlip);
+      part.setOrigin(mirror ? 1 - baseOX : baseOX, part.originY);
+    }
   }
 
   get hopping(): boolean {
@@ -218,11 +247,9 @@ export class Blok extends Phaser.GameObjects.Container {
   }
 
   squash(x = 1.25, y = 0.8, ms = 90): void {
-    const sx = Math.abs(this.rig.scaleX) || 1;
-    const dir = this.facing;
     this.scene.tweens.add({
       targets: this.rig,
-      scaleX: { from: sx * x * dir, to: sx * dir },
+      scaleX: { from: x, to: 1 },
       scaleY: { from: y, to: 1 },
       duration: ms * 2,
       ease: 'Back.easeOut',
@@ -317,15 +344,16 @@ export class Blok extends Phaser.GameObjects.Container {
       bodyBob = 4 * this.size;
     }
 
-    p.legL.angle = legL;
-    p.legR.angle = legR;
-    p.armL.angle = armL;
-    p.armR.angle = armR;
-    p.head.angle = headAngle;
+    const f = this.facing;
+    p.legL.angle = legL * f;
+    p.legR.angle = legR * f;
+    p.armL.angle = armL * f;
+    p.armR.angle = armR * f;
+    p.head.angle = headAngle * f;
     const u = UNIT * this.size;
     p.head.y = (PART_PIVOTS.head.y - FEET.y) * u + breath;
     p.armL.y = p.armR.y = (PART_PIVOTS.arm.y - FEET.y) * u + breath * 0.5;
     if (!this.hopTween) this.rig.y = bodyBob;
-    if (!this.scene.tweens.isTweening(this.rig)) this.rig.angle = rigAngle;
+    if (!this.scene.tweens.isTweening(this.rig)) this.rig.angle = rigAngle * f;
   }
 }

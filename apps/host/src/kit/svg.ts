@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { INK, svgDataUri } from '@samigame/shared';
+import { INK } from '@samigame/shared';
 
 /**
  * SVG → Phaser-tekstur. Al grafik i spillet tegnes som SVG i kode (se docs/STYLE.md).
@@ -12,7 +12,20 @@ import { INK, svgDataUri } from '@samigame/shared';
  */
 export function loadSvg(scene: Phaser.Scene, key: string, svg: string, w: number, h: number): void {
   if (scene.textures.exists(key)) return;
-  scene.load.svg(key, svgDataUri(svg), { width: Math.round(w), height: Math.round(h) });
+  scene.load.svg(key, svgBase64(svg), { width: Math.round(w), height: Math.round(h) });
+}
+
+/** Sæt rod-elementets width/height, så billedet rasteriseres i den ønskede opløsning. */
+function withSize(svg: string, w: number, h: number): string {
+  return svg.replace(/<svg([^>]*?)\swidth="[^"]*"([^>]*?)\sheight="[^"]*"/, `<svg$1 width="${w}"$2 height="${h}"`);
+}
+
+/** Phaser's loader kræver base64 i data-URI'er. */
+export function svgBase64(svg: string): string {
+  const bytes = new TextEncoder().encode(svg);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return `data:image/svg+xml;base64,${btoa(bin)}`;
 }
 
 const pending = new Map<string, Promise<string>>();
@@ -26,13 +39,7 @@ export function addSvg(scene: Phaser.Scene, key: string, svg: string, w: number,
   const promise = new Promise<string>((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      if (!textures.exists(key)) {
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(w);
-        canvas.height = Math.round(h);
-        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-        textures.addCanvas(key, canvas);
-      }
+      if (!textures.exists(key)) textures.addImage(key, img);
       pending.delete(key);
       resolve(key);
     };
@@ -40,7 +47,7 @@ export function addSvg(scene: Phaser.Scene, key: string, svg: string, w: number,
       pending.delete(key);
       reject(new Error(`Kunne ikke tegne SVG ${key}`));
     };
-    img.src = svgDataUri(svg);
+    img.src = svgBase64(withSize(svg, Math.round(w), Math.round(h)));
   });
   pending.set(key, promise);
   return promise;
