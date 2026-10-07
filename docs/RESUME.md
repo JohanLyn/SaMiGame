@@ -1,3 +1,5 @@
+> **Status (bølge 2 færdig):** e2e grøn, AD-gennemgang og polering gennemført, demo udgivet. Se `docs/PROGRESS.md` for detaljer og næste skridt. Resten af denne fil er den historiske genoptagelsesplan.
+
 # SaMi Party – genoptag efter afbrydelse (bølge 1 færdiggørelse + bølge 2)
 
 ## Context

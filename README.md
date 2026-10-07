@@ -14,7 +14,7 @@ Design: [docs/PLAN.md](docs/PLAN.md) · Stilguide: [docs/STYLE.md](docs/STYLE.md
 
 **Demo-link:** https://claude.ai/artifact/RbGy46Fag4CVMJzjbTCBk5 (privat – kan deles fra sidens Del-menu)
 
-Demoen kører helt i browseren uden server og telefoner: **Spiller 1** styrer med **WASD + Mellemrum**, **Spiller 2** med **piletaster + Enter**, og resten er bots (en bot tager også over for dig, når du ikke trykker). Klik **START SPILLET** for et helt spil, eller vælg ét af minigamesene i listen til venstre. Klik én gang på skærmen for lyd. Den samme tilstand findes lokalt på `http://localhost:5173/?demo`, og `npm run build:demo -w @samigame/host` bygger den til `apps/host/dist-demo/`.
+Demoen kører helt i browseren uden server og telefoner: **Spiller 1** styrer med **WASD + Mellemrum**, **Spiller 2** med **piletaster + Enter**, og resten er bots (en bot tager også over for dig, når du ikke trykker). Klik **START SPILLET** for et helt spil, eller vælg ét af minigamesene i listen til venstre. Klik én gang på skærmen for lyd. Den samme tilstand findes lokalt på `http://localhost:5173/?demo`, og `npm run build:demo -w @samigame/host` bygger den til `apps/host/dist-demo/`. `python3 scripts/pack-demo.py apps/host/dist-demo sami-party.html` pakker den til én selvstændig HTML-fil (det er den, demo-linket viser).
 
 ## Spil det derhjemme (med telefoner)
 

@@ -72,8 +72,8 @@ afsløre `this.pick` (minigamet er allerede valgt) og til sidst kalde `this.done
 ## Test og screenshots (uden server)
 - Typecheck: `npx tsc -p apps/host/tsconfig.json`
 - Kør og screenshot: `node scripts/shoot.mjs --port <DIN-PORT> --query "minigame=<id>&speed=2" --at 4,10,18 --out shots/<id> --until-result --timeout 150`
-  - Ritual: `--query "ritual=<id>"`. Scener: `--query "scene=results|awards|finale|chaos|teams|intro|round"`.
-  - Headless-browseren renderer i software (~5 FPS), så brug `speed=2..4`. Ved konsolfejl afsluttes med kode 1.
+  - Ritual: `--query "ritual=<id>"`. Scener: `--query "scene=results|awards|finale|chaos|teams|intro|round"` (tilføj `&pick=<minigame-id>` for at bruge et bestemt spil, fx `scene=teams&pick=toiletter` for 1 mod 3).
+  - Headless-browseren renderer i software (~5 FPS), så brug `speed=2..4`, og kør ikke flere `shoot.mjs` samtidig (lange spil når så ikke resultat inden for timeout). Ved konsolfejl afsluttes med kode 1.
   - Kig på screenshots med Read-værktøjet og ret alt der ser billigt ud.
 - I browseren manuelt: `?minigame=<id>&keys=1` (WASD + mellemrum for plads 1, piletaster + Enter for plads 2).
 

@@ -23,7 +23,13 @@ Design: `docs/PLAN.md`. Udførelsesplan (bølger, arkitektur): `docs/EXECUTION.m
 - Demo-tilstand (`?demo`, `build:demo`): 2 tastatur-spillere + bots, START-knap og minigame-vælger i lobbyen. Udgivet som privat demo-link (se README).
 - Æ/Ø/Å i SVG-tekst rettet (UTF-8-header).
 
-## Bølge 2 – næste skridt (ikke startet)
-- Art director-gennemgang af alle skærme og poleringsrunde (se `docs/RESUME.md`, trin 3).
-- Kendte småting: navneskilte kan overlappe tekst i lobbyen; Sumo-pandens grå "olie"-ellipser; flytbar timer (`TimerHud`) og navneskilt-position på `Blok` ønsket af agenterne.
-- Udvidet e2e (`e2e/lobby.spec.ts`: 2 telefoner, 3 runder, finale, priser) er skrevet men ikke kørt endnu.
+## Bølge 2 – art director + polering ✅
+- Udvidet e2e (`npm run test:e2e`: 2 telefoner, 3 runder, ritualer, kaos, hold, finale, priser) er grøn (~7 min). Host-Vite kører uden HMR i e2e, så en filændring midt i testen ikke genindlæser TV'et.
+- Alle 17 minigames, 5 ritualer og alle scener er screenshottet og gennemgået mod STYLE.md; alle minigames giver gyldigt resultat med bots uden konsolfejl.
+- Rettet: bots kan ikke længere få samme navn/figur som en menneskelig spiller; resultat-skærmens vindertekst ligger fri af kronen; ritual-titler skaleres ind i båndet; intro-kortets styring/kaos-linje forankret i bunden (reglerne skaleres); holdfarvede felter + balanceret 1 mod 3-layout i hold-skærmen; kaos-konfetti bag kortet; lyd-hint flyttet væk fra solen i lobbyen; Sumo har fået køkkenkulisse (redskaber, krydderikrukker med øjne, komfur) og gyldne oliepytter i stedet for grå ellipser; Kogebogens advarsel står stort på bogryggen; tydeligere rolleskilte i Badekar og Kagebombe; større hint i Spejldans; telefonlobbyens navnefelt/Jubel-knap passer på smalle skærme.
+- Demo genopbygget og udgivet på samme link (`scripts/pack-demo.py`).
+
+## Næste skridt (forslag)
+- Vulkan-ritualet: fjer-pindene tegnes hen over navneskiltene.
+- Lyd/tekst-gennemgang på et rigtigt TV med rigtige telefoner (afstand, latency).
+- `TimerHud` med valgfri placering og navneskilt-position på `Blok` (ønsket af agenterne).
