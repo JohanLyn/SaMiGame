@@ -152,7 +152,7 @@ export class KogebogScene extends MinigameScene {
     this.setTheta(0);
     this.pageTitle = label(this, W / 2, BOOK.HY - BOOK.UP + 27, '', 30, { color: C.ink, stroke: 0 }).setShadow(0, 0, C.ink, 0).setDepth(-6690);
     this.setPageTitle();
-    this.warn = label(this, W / 2, 1050, '', 34, { color: C.sun }).setDepth(7000).setAlpha(0);
+    this.warn = label(this, W / 2, BOOK.HY, '', 58, { color: C.sun, stroke: 10 }).setDepth(7000).setAlpha(0);
 
     const starts = [
       [0.2, 0.35],

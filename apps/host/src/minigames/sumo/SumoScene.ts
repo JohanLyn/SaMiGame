@@ -8,7 +8,7 @@ import { gradientBackdrop } from '../../kit/scenery';
 import type { BotInput } from '../../flow/types';
 import type { Blok } from '../../objects/Blok';
 import { MinigameScene } from '../_framework/MinigameScene';
-import { PAN, arrowSvg, flameSvg, meatballSvg, panSvg, steamSvg, tileSvg } from './art';
+import { PAN, arrowSvg, flameSvg, kitchenSvg, meatballSvg, panSvg, steamSvg, stoveSvg, tileSvg } from './art';
 
 const BALL_R = 62;
 const ACCEL = 1500;
@@ -60,6 +60,8 @@ export class SumoScene extends MinigameScene {
     loadSvg(this, 'sumo-ball', meatballSvg(), 170, 170);
     loadSvg(this, 'sumo-flame', flameSvg(), 120, 180);
     loadSvg(this, 'sumo-tile', tileSvg(), 120, 120);
+    loadSvg(this, 'sumo-kitchen', kitchenSvg(), 1920, 520);
+    loadSvg(this, 'sumo-stove', stoveSvg(), 1920, 560);
     loadSvg(this, 'sumo-steam', steamSvg(), 100, 100);
     loadSvg(this, 'sumo-arrow', arrowSvg(), 200, 120);
   }
@@ -73,9 +75,9 @@ export class SumoScene extends MinigameScene {
     // Køkkenvæg: fliser + varm gradient
     gradientBackdrop(this, '#ffb36b', '#7a2a1a');
     this.add.tileSprite(W / 2, 260, W, 520, 'sumo-tile').setAlpha(0.55).setDepth(-9000);
-    this.add.rectangle(W / 2, 540, W, 40, N.ink, 0.5).setDepth(-8900);
-    this.add.rectangle(W / 2, 820, W, 560, 0x2b2238).setDepth(-8800);
-    this.add.rectangle(W / 2, 545, W, 14, 0xc0c8d8).setDepth(-8800);
+    this.add.image(W / 2, 260, 'sumo-kitchen').setDepth(-8950);
+    this.add.rectangle(W / 2, 525, W, 30, N.ink, 0.35).setDepth(-8900);
+    this.add.image(W / 2, 540 + 280, 'sumo-stove').setDepth(-8800);
 
     // Flammer under panden
     for (let i = 0; i < 9; i++) {

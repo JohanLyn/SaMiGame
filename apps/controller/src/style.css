@@ -704,6 +704,7 @@ input {
 
 .lobby-side {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -715,6 +716,9 @@ input {
 }
 
 .name-edit {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   font-size: 20px;
   padding: 8px 10px;
 }
