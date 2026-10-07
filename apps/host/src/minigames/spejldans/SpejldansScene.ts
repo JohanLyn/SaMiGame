@@ -3,7 +3,7 @@ import { audio, type MusicTheme } from '../../kit/audio';
 import { loadSvg } from '../../kit/svg';
 import { TEX } from '../../kit/textures';
 import { C, H, N, TEAM_HEX, TEAM_NAMES, W } from '../../kit/theme';
-import { body, label, panelKey, panelSvg, title } from '../../kit/ui';
+import { label, panelKey, panelSvg, title } from '../../kit/ui';
 import type { BotInput, PlayerView } from '../../flow/types';
 import type { Blok } from '../../objects/Blok';
 import { MinigameScene } from '../_framework/MinigameScene';
@@ -173,7 +173,7 @@ export class SpejldansScene extends MinigameScene {
       const r = this.add.image(this.colX(i), RECEPTOR_Y, 'dans-receptor').setRotation(d.rot).setScale(0.88).setDepth(120);
       this.receptors.push(r);
     });
-    body(this, HW_X, H - 28, 'TRYK PÅ LINJEN – SAMTIDIG MED MAKKEREN!', 20, { color: C.cream, stroke: 5 }).setDepth(180);
+    label(this, HW_X, H - 34, 'TRYK PÅ LINJEN – SAMTIDIG MED MAKKEREN!', 30, { color: C.sun }).setDepth(180);
     this.beatLines = this.add.graphics().setDepth(110);
     // Glødende linje bag modtagerne
     const glow = this.add.graphics().setDepth(115);
