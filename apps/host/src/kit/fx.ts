@@ -90,7 +90,7 @@ export class Fx {
   }
 
   /** Konfetti-regn over hele skærmen (sejr!). */
-  confetti(duration = 2500): void {
+  confetti(duration = 2500, depth = 8000): void {
     const emitter = this.scene.add.particles(0, -20, TEX.confetti, {
       x: { min: 0, max: W },
       speedY: { min: 200, max: 420 },
@@ -102,7 +102,7 @@ export class Fx {
       frequency: 30,
       tint: CONFETTI_COLORS,
     });
-    emitter.setDepth(8000).setScrollFactor(0);
+    emitter.setDepth(depth).setScrollFactor(0);
     this.scene.time.delayedCall(duration, () => emitter.stop());
     this.scene.time.delayedCall(duration + 4500, () => emitter.destroy());
   }

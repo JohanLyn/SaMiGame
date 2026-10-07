@@ -309,7 +309,7 @@ export class ChaosScene extends Phaser.Scene {
           fx.punch(0.05, 220);
           this.shockwave(cx, cy, col);
           fx.burst(cx, cy, { texture: TEX.star, color: [N.sun, N.bubblegum, N.mint, 0xffffff], count: 34, speed: 1000, scale: 0.75 });
-          fx.confetti(1400);
+          fx.confetti(1400, 8);
           audio.sfx('explosion', { volume: 0.5 });
           audio.sfx('powerup', { delay: 0.1 });
           this.tweens.add({ targets: glow, scale: 5.2, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { loadSvg } from '../../kit/svg';
 import { TEX } from '../../kit/textures';
 import { C, H, N, TEAM_HEX, TEAM_NAMES, W } from '../../kit/theme';
-import { body, label, title } from '../../kit/ui';
+import { label, title } from '../../kit/ui';
 import type { MusicTheme } from '../../kit/audio';
 import type { BotInput, PlayerView } from '../../flow/types';
 import type { Blok } from '../../objects/Blok';
@@ -333,9 +333,17 @@ export class BadekarScene extends MinigameScene {
     const roleY = H - 46;
     const roleX = x0 + (lane === 0 ? LANE_W - 230 : 230);
     const roleBg = this.add.graphics().setDepth(7000);
-    roleBg.fillStyle(N.ink, 0.75).fillRoundedRect(roleX - 200, roleY - 66, 400, 104, 22);
-    body(this, roleX, roleY - 36, `STYRER: ${steer.name}`, 24, { color: steer.color, stroke: 5 }).setDepth(7001);
-    body(this, roleX, roleY - 2, `BOOST: ${boost.name}`, 24, { color: boost.color, stroke: 5 }).setDepth(7001);
+    roleBg.fillStyle(N.ink, 0.88).fillRoundedRect(roleX - 200, roleY - 66, 400, 104, 22);
+    roleBg.lineStyle(5, col, 1).strokeRoundedRect(roleX - 200, roleY - 66, 400, 104, 22);
+    roleBg.fillStyle(0xffffff, 0.12).fillRoundedRect(roleX - 186, roleY - 58, 372, 12, 6);
+    const roleLine = (y: number, role: string, p: PlayerView) => {
+      const r = label(this, roleX - 182, y, role, 24, { color: C.cream, stroke: 5 }).setOrigin(0, 0.5).setDepth(7001);
+      const n = label(this, r.x + r.width + 10, y, p.name, 26, { color: p.color, stroke: 6 }).setOrigin(0, 0.5).setDepth(7001);
+      const room = roleX + 186 - n.x;
+      if (n.width > room) n.setScale(room / n.width);
+    };
+    roleLine(roleY - 36, 'STYRER', steer);
+    roleLine(roleY - 2, 'BOOST', boost);
     const icons = Array.from({ length: MAX_CHARGES }, (_, i) =>
       this.add.image(roleX - 60 + i * 60, roleY - 112, 'bad-rocket').setScale(0.75).setDepth(7001),
     );

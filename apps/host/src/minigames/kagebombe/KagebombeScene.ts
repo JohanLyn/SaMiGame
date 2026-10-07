@@ -3,7 +3,7 @@ import type { ButtonSpec, ControllerLayout } from '@samigame/shared';
 import { loadSvg } from '../../kit/svg';
 import { TEX } from '../../kit/textures';
 import { C, H, N, TEAM_HEX, TEAM_NAMES, W } from '../../kit/theme';
-import { body, label, panelKey, panelSvg, title } from '../../kit/ui';
+import { label, panelKey, panelSvg, title } from '../../kit/ui';
 import type { MusicTheme } from '../../kit/audio';
 import type { BotInput, PlayerView } from '../../flow/types';
 import type { Blok } from '../../objects/Blok';
@@ -173,8 +173,11 @@ export class KagebombeScene extends MinigameScene {
     // Rolle-skilte under figurerne
     const roleChip = (x: number, text: string) => {
       const g = this.add.graphics().setDepth(430);
-      g.fillStyle(N.ink, 0.85).fillRoundedRect(x - 78, FLOOR_Y + 22, 156, 40, 18);
-      body(this, x, FLOOR_Y + 42, text, 22, { color: TEAM_HEX[t], stroke: 0 }).setDepth(431);
+      const col = Phaser.Display.Color.HexStringToColor(TEAM_HEX[t]).color;
+      g.fillStyle(N.ink, 1).fillRoundedRect(x - 84, FLOOR_Y + 18, 168, 46, 22);
+      g.fillStyle(col, 1).fillRoundedRect(x - 78, FLOOR_Y + 22, 156, 36, 18);
+      g.fillStyle(0xffffff, 0.3).fillRoundedRect(x - 66, FLOOR_Y + 26, 132, 9, 4);
+      label(this, x, FLOOR_Y + 41, text, 26, { color: C.cream, stroke: 6 }).setDepth(431);
     };
     roleChip(readerBlok.x, 'LÆSER');
     roleChip(cutterBlok.x, 'KLIPPER');

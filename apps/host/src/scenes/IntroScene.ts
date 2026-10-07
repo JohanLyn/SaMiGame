@@ -61,17 +61,24 @@ export class IntroScene extends Phaser.Scene {
     body(this, 620, 530, def.tagline, 36, { color: C.cream, wrap: 900 });
     for (const o of [icon, t, kind]) this.fx.popIn(o);
 
-    let y = 625;
+    // Styring og kaos-kort står nederst på kortet; reglerne fylder pladsen imellem (og skaleres ned hvis de er lange).
+    const controls = controlsFor(this.d, players[0]?.role ?? 'ffa');
+    const bottom = 965;
+    const chaosY = bottom - 10;
+    const controlsY = chaos.length ? bottom - 75 : bottom - 30;
+    label(this, 620, controlsY, controls.join('    '), 38, { color: C.mint, wrap: 960 });
+    if (chaos.length) {
+      label(this, 620, chaosY, chaos.map((c) => `${c.emoji} ${c.title}`).join('   '), 36, { color: C.bubblegum });
+    }
+    const rules = this.add.container(160, 610);
+    let y = 0;
     for (const rule of def.rules) {
-      const r = body(this, 160, y, `•  ${rule}`, 34, { align: 'left', wrap: 900 }).setOrigin(0, 0);
+      const r = body(this, 0, y, `•  ${rule}`, 34, { align: 'left', wrap: 900 }).setOrigin(0, 0);
+      rules.add(r);
       y += r.height + 12;
     }
-    const controls = controlsFor(this.d, players[0]?.role ?? 'ffa');
-    y = Math.max(y + 20, 830);
-    label(this, 620, y, controls.join('    '), 38, { color: C.mint, wrap: 960 });
-    if (chaos.length) {
-      label(this, 620, y + 80, chaos.map((c) => `${c.emoji} ${c.title}`).join('   '), 36, { color: C.bubblegum });
-    }
+    const room = controlsY - 50 - 610;
+    if (y > room) rules.setScale(room / y);
 
     // Højre: spillerne
     this.ready = players.map(() => false);

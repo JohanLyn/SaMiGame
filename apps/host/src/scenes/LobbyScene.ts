@@ -334,7 +334,7 @@ export class LobbyScene extends Phaser.Scene {
   private drawBottomBar(): void {
     this.roundsText = label(this, 1265, 960, `🏁 ${this.rounds} runder`, 52, { color: C.sun }).setDepth(2000);
     this.hintText = body(this, 1265, 1030, '', 30, { color: C.cream, stroke: 7 }).setDepth(2000);
-    this.soundHint = body(this, W - 30, 30, '🔊 Klik for lyd', 26, { color: C.cream, stroke: 6 }).setOrigin(1, 0).setDepth(2000);
+    this.soundHint = body(this, W - 240, 30, '🔊 Klik for lyd', 26, { color: C.cream, stroke: 6 }).setOrigin(1, 0).setDepth(2000);
     this.tweens.add({ targets: this.soundHint, alpha: 0.4, duration: 800, yoyo: true, repeat: -1 });
     void H;
   }

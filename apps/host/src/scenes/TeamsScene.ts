@@ -93,6 +93,20 @@ export class TeamsScene extends Phaser.Scene {
           b.setRing(solo ? (teamIdx === 0 ? C.sun : C.sky) : TEAM_HEX[teamIdx]);
         });
       };
+      // Holdfarvet felt bag hver side, så holdene læses med det samme
+      const zone = (cx: number, count: number, color: string, delay: number) => {
+        const w = count > 2 ? 680 : count === 2 ? 620 : 360;
+        const n = Phaser.Display.Color.HexStringToColor(color).color;
+        const g = this.add.graphics();
+        g.fillStyle(n, 0.16).fillRoundedRect(-w / 2, -250, w, 380, 48);
+        g.lineStyle(8, n, 0.85).strokeRoundedRect(-w / 2, -250, w, 380, 48);
+        g.lineStyle(3, 0xffffff, 0.25).strokeRoundedRect(-w / 2 + 12, -238, w - 24, 356, 38);
+        const c = this.add.container(cx, groundY - 40, [g]).setDepth(-10);
+        fx.popIn(c, delay);
+        this.tweens.add({ targets: g, alpha: 0.7, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: delay + 400 });
+      };
+      zone(W * 0.27, sides.left.length, solo ? C.sun : TEAM_HEX[0], 0);
+      zone(W * 0.7, sides.right.length, solo ? C.sky : TEAM_HEX[1], 120);
       place(sides.left, W * 0.27, 0);
       place(sides.right, W * 0.7, 1);
 

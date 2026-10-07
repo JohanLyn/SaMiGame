@@ -96,6 +96,8 @@ export function ritualHeader(scene: RitualScene, name: string, hint: string, col
     if (rib.active) rib.setTexture(key).setAlpha(1);
   });
   const t = title(scene, 0, -18, name, 74, { color: C.cream });
+  const maxW = w - 200;
+  if (t.width > maxW) t.setScale(maxW / t.width);
   const hintBg = scene.add.graphics();
   const hintText = body(scene, 0, 100, hint, 34, { stroke: 7 });
   const drawHint = () => {
