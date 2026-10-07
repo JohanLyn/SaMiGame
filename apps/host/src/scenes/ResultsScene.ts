@@ -60,7 +60,7 @@ export class ResultsScene extends Phaser.Scene {
       fx.popIn(badge, 700 + place[i] * 250);
       fx.popIn(num, 700 + place[i] * 250);
       const pts = points[i];
-      const gain = title(this, x, 400, pts > 0 ? `+${pts}` : '0', 88, { color: pts > 0 ? C.mint : '#9aa3c7' }).setScale(0);
+      const gain = title(this, x, 520, pts > 0 ? `+${pts}` : '0', 88, { color: pts > 0 ? C.mint : '#9aa3c7' }).setScale(0);
       this.tweens.add({ targets: gain, scale: 1, delay: 1300 + i * 120, duration: 380, ease: 'Back.easeOut', onStart: () => pts > 0 && audio.sfx('coin', { pitch: 1 + i * 0.1 }) });
       this.tweens.add({
         targets: gain,
@@ -92,10 +92,10 @@ export class ResultsScene extends Phaser.Scene {
         audio.sfx('win');
         audio.say('win');
         const names = winners.map((s) => players[s].name).join(' & ');
-        label(this, W / 2, 520, `${names} vinder!`, 64, { color: C.sun });
+        label(this, W / 2, 390, `${names} vinder!`, 64, { color: C.sun });
         fx.burst(xs[winners[0]], 260, { texture: 'kit-star', color: [N.sun, 0xffffff], count: 20, speed: 600 });
       } else {
-        body(this, W / 2, 520, 'Uafgjort!', 60, { stroke: 8 });
+        body(this, W / 2, 390, 'Uafgjort!', 60, { stroke: 8 });
       }
     });
 

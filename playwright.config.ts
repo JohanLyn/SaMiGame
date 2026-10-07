@@ -6,7 +6,7 @@ export default defineConfig({
   use: { trace: 'retain-on-failure' },
   webServer: [
     { command: 'npm run start -w @samigame/server', url: 'http://localhost:3000/health', reuseExistingServer: true },
-    { command: 'npm run dev -w @samigame/host', url: 'http://localhost:5173', reuseExistingServer: true },
+    { command: 'npm run dev -w @samigame/host', url: 'http://localhost:5173', reuseExistingServer: true, env: { NO_HMR: '1' } },
     { command: 'npm run dev -w @samigame/controller', url: 'http://localhost:5174', reuseExistingServer: true },
   ],
 });

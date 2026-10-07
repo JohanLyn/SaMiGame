@@ -123,8 +123,13 @@ export class Director {
 
   /** Bots til tomme pladser: presets som ingen menneske har valgt. */
   static fillSeeds(humans: ({ name: string; avatar: Avatar | null } | null)[]): PlayerSeed[] {
-    const used = new Set(humans.filter(Boolean).map((h) => JSON.stringify(h!.avatar)));
-    const free = AVATAR_PRESETS.filter((p) => !used.has(JSON.stringify(p.avatar)));
+    // Undgå presets som et menneske allerede har (samme figur eller samme navn), så ingen optræder to gange.
+    const usedAvatars = new Set(humans.map((h, slot) => h && JSON.stringify(h.avatar ?? AVATAR_PRESETS[slot].avatar)));
+    const usedNames = new Set(humans.map((h) => h?.name.trim().toLowerCase()));
+    const sameFace = (a: Avatar) => humans.some((h) => h?.avatar && h.avatar.skin === a.skin && h.avatar.face === a.face);
+    const ok = (p: (typeof AVATAR_PRESETS)[number]) => !usedAvatars.has(JSON.stringify(p.avatar)) && !usedNames.has(p.name.toLowerCase());
+    const strict = AVATAR_PRESETS.filter((p) => ok(p) && !sameFace(p.avatar));
+    const free = strict.length >= humans.length ? strict : AVATAR_PRESETS.filter(ok);
     let nextBot = 0;
     return humans.map((h, slot) => {
       const color = PLAYER_COLORS[slot].hex;

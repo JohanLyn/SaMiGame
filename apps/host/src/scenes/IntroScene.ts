@@ -74,7 +74,7 @@ export class IntroScene extends Phaser.Scene {
     }
 
     // Højre: spillerne
-    this.ready = players.map((p) => false || (p.isBot && false));
+    this.ready = players.map(() => false);
     this.checks = [];
     this.bloks = [];
     title(this, 1550, 110, 'Klar?', 90, { color: C.cream });
