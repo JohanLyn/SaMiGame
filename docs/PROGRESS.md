@@ -17,7 +17,7 @@ Design: `docs/PLAN.md`. Udførelsesplan (bølger, arkitektur): `docs/EXECUTION.m
 
 ## Bølge 1 – parallelle agenter ✅
 - 16 minigames + finalen Kaos-Tårnet (`apps/host/src/minigames/`), 5 ritualer (`apps/host/src/rituals/`), ny ChaosScene og AwardsScene.
-- A, B og C blev stoppet af en API-grænse lige før deres sidste officielle slut-test; deres spil er kørt igennem af mig bagefter (se nedenfor).
+- A, B og C blev stoppet af en API-grænse lige før deres sidste officielle slut-test. Alle 17 minigames er derefter kørt igennem af mig med bots (`scripts/shoot.mjs --until-result`): alle giver gyldigt resultat uden konsolfejl.
 
 ## Afrunding ✅
 - Demo-tilstand (`?demo`, `build:demo`): 2 tastatur-spillere + bots, START-knap og minigame-vælger i lobbyen. Udgivet som privat demo-link (se README).
