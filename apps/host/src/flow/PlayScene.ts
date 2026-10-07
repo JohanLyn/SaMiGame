@@ -68,6 +68,8 @@ export abstract class PlayScene extends Phaser.Scene {
     this.firstPoll = Array(n).fill(true);
     this.tweens.timeScale = this.speed;
     this.time.timeScale = this.speed;
+    // Lad ikke TweenManager springe tid over ved lav FPS – ellers løber tweens fra uret.
+    this.tweens.setLagSmooth(10000, 10000);
   }
 
   /** Override: bot-styring for en plads. Returnér null for "gør ingenting". */

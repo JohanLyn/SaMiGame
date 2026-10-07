@@ -867,7 +867,7 @@ export class KaostaarnScene extends MinigameScene {
       this.trophyHolder = c.p.slot;
       this.slowLeft = 2.6;
       this.tweens.timeScale = 0.35 * this.speed;
-      this.fx.flash(0xffffff, 400, 0.8);
+      this.fx.flash(0xffffff, 300, 0.55);
       this.fx.shake(0.01, 300);
       this.fx.confetti(3000);
       this.sfx('fanfare');

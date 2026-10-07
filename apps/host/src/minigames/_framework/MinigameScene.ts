@@ -132,7 +132,7 @@ export abstract class MinigameScene extends PlayScene {
 
   private countStep(text: string, color: string, size: number, scale = 1): Promise<void> {
     return new Promise((resolve) => {
-      const t = title(this, W / 2, H / 2, text, size, { color }).setDepth(9600).setScale(0).setAngle(-8);
+      const t = title(this, W / 2, H / 2, text, size, { color }).setDepth(9600).setScrollFactor(0).setScale(0).setAngle(-8);
       this.tweens.add({ targets: t, scale, angle: 0, duration: 260, ease: 'Back.easeOut' });
       this.tweens.add({
         targets: t,
