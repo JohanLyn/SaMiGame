@@ -41,7 +41,7 @@ const WADE_SPEED = 170;
 const HOP_TIME = 0.42;
 const HOP_SPEED = 640;
 const HOP_COOLDOWN = 0.2;
-const SINK_DEPTH = 150;
+const SINK_DEPTH = 210;
 const MAX_ROUNDS = 14;
 const MIN_SHROOMS = 4;
 
