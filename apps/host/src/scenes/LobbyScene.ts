@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import QRCode from 'qrcode';
-import { MAX_PLAYERS, PLAYER_COLORS, type ActionValue, type PlayerInfo } from '@samigame/shared';
+import { AVATAR_PRESETS, MAX_PLAYERS, PLAYER_COLORS, hexToNumber, shade, type ActionValue, type PlayerInfo } from '@samigame/shared';
 import { audio } from '../kit/audio';
 import { Fx } from '../kit/fx';
 import { clouds, islandSvg, palm, sea, sun } from '../kit/scenery';
@@ -8,9 +8,10 @@ import { addSvg, ink, svgDoc } from '../kit/svg';
 import { TEX } from '../kit/textures';
 import { C, H, N, W } from '../kit/theme';
 import { body, label, panel, title } from '../kit/ui';
-import { DEV, keyboard, net } from '../net';
+import { DEMO, DEV, keyboard, net } from '../net';
 import { Blok } from '../objects/Blok';
 import { Director } from '../flow/Director';
+import type { PlayerSeed } from '../game/GameState';
 
 const ROUND_OPTIONS = [5, 10, 15];
 const ISLAND = { x: 1265, y: 700, rx: 560, ry: 190 };
@@ -58,7 +59,8 @@ export class LobbyScene extends Phaser.Scene {
     sun(this, 1790, 120, 0.9);
     clouds(this, 6, 40, 260);
     this.drawIsland();
-    void this.drawJoinPanel();
+    if (DEMO) this.drawDemoPanel();
+    else void this.drawJoinPanel();
     this.drawSpots();
     this.drawBottomBar();
     this.fx.vignette(0.55);
@@ -68,7 +70,7 @@ export class LobbyScene extends Phaser.Scene {
     const unsub = net.subscribe(() => this.refresh());
     const unAction = net.onAction((slot, name, value) => this.onAction(slot, name, value));
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && !keyboard.enabled) this.startGame();
+      if (e.key === 'Enter' && (DEMO || !keyboard.enabled)) this.startGame();
       if (e.key === 'r' || e.key === 'R') this.setRounds(ROUND_OPTIONS[(ROUND_OPTIONS.indexOf(this.rounds) + 1) % ROUND_OPTIONS.length]);
     };
     window.addEventListener('keydown', onKey);
@@ -88,6 +90,9 @@ export class LobbyScene extends Phaser.Scene {
   // ---------------------------------------------------------------------------
 
   private humans(): (PlayerInfo | null)[] {
+    if (DEMO) {
+      return demoSeeds().map((seed, slot) => ({ slot, name: seed.name, color: seed.color, connected: true, avatar: seed.avatar }));
+    }
     return net.players.slice(0, MAX_PLAYERS);
   }
 
@@ -96,6 +101,11 @@ export class LobbyScene extends Phaser.Scene {
   }
 
   private refresh(): void {
+    if (DEMO) {
+      this.humans().forEach((p, slot) => this.updateSpot(slot, p));
+      this.hintText?.setText('Spiller 1: WASD + Mellemrum   ·   Spiller 2: Piletaster + Enter   ·   resten styres af bots');
+      return;
+    }
     if (!this.codeText) return;
     this.codeText.setText(net.code ?? '····');
     this.urlText.setText(net.joinUrl ? net.joinUrl.replace(/^https?:\/\//, '') : '');
@@ -198,7 +208,8 @@ export class LobbyScene extends Phaser.Scene {
     for (const spot of this.spots) spot.blok?.cheer();
     this.fx.confetti(1200);
     const humans = this.humans().map((p) => (p ? { name: p.name, avatar: p.avatar } : null));
-    this.time.delayedCall(1100, () => this.director.startGame(Director.fillSeeds(humans), this.rounds));
+    const seeds = DEMO ? demoSeeds() : Director.fillSeeds(humans);
+    this.time.delayedCall(1100, () => this.director.startGame(seeds, this.rounds));
   }
 
   // ---------------------------------------------------------------------------
@@ -215,9 +226,40 @@ export class LobbyScene extends Phaser.Scene {
     palm(this, ISLAND.x + ISLAND.rx - 30, ISLAND.y + 10, 0.95, 600);
     palm(this, ISLAND.x + ISLAND.rx - 150, ISLAND.y - 60, 0.75, 500);
 
-    const sign = title(this, ISLAND.x, 410, 'Byg din figur på telefonen!', 56, { color: C.cream });
+    const sign = title(this, ISLAND.x, 285, DEMO ? 'Tryk START – eller prøv ét minigame!' : 'Byg din figur på telefonen!', 56, { color: C.cream });
     sign.setDepth(100);
     this.tweens.add({ targets: sign, angle: { from: -1.5, to: 1.5 }, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  }
+
+  /** Demo (ingen telefoner): styring, START-knap og en vælger til at prøve ét minigame. */
+  private drawDemoPanel(): void {
+    void panel(this, 330, 540, 560, 1010, C.deep, { radius: 44 }).then((bg) => bg.setDepth(1000));
+
+    const logo = this.add.container(330, 105).setDepth(1001);
+    logo.add([title(this, 0, -30, 'SaMi', 100, { color: C.cream }), title(this, 0, 60, 'PARTY', 92, { color: C.sun })]);
+    logo.angle = -4;
+    this.tweens.add({ targets: logo, angle: 4, duration: 2000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+
+    label(this, 330, 232, 'DEMO – spil i browseren', 34, { color: C.mint }).setDepth(1001);
+    body(this, 330, 300, 'Spiller 1: WASD + Mellemrum\nSpiller 2: Piletaster + Enter\nIngen tast? Så spiller en bot for dig', 24, { color: C.cream }).setDepth(1001);
+
+    demoButton(this, 330, 400, 460, 84, C.mint, '▶  START SPILLET', 44, () => this.startGame()).setDepth(1001);
+    label(this, 330, 475, 'Prøv ét minigame:', 30, { color: C.sun }).setDepth(1001);
+
+    const games = [...this.director.minigames].sort((a, b) => Number(Boolean(a.finale)) - Number(Boolean(b.finale)));
+    games.forEach((def, i) => {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const x = 330 + (col === 0 ? -132 : 132);
+      const y = 528 + row * 55;
+      demoButton(this, x, y, 252, 47, def.color, `${def.icon} ${def.title}`, 21, () => {
+        if (this.starting) return;
+        this.starting = true;
+        audio.unlock();
+        audio.sfx('go');
+        this.director.playSingle(demoSeeds(), def.id);
+      }).setDepth(1001);
+    });
   }
 
   private async drawJoinPanel(): Promise<void> {
@@ -296,4 +338,45 @@ export class LobbyScene extends Phaser.Scene {
     this.tweens.add({ targets: this.soundHint, alpha: 0.4, duration: 800, yoyo: true, repeat: -1 });
     void H;
   }
+}
+
+/** De fire demo-spillere: to på tastaturet og to bots. */
+function demoSeeds(): PlayerSeed[] {
+  return Director.fillSeeds([
+    { name: 'Spiller 1', avatar: AVATAR_PRESETS[0].avatar },
+    { name: 'Spiller 2', avatar: AVATAR_PRESETS[1].avatar },
+    null,
+    null,
+  ]);
+}
+
+/** Klikbar knap i spillets stil (afrundet, kontur, highlight, hover-pop). */
+function demoButton(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  color: string,
+  text: string,
+  size: number,
+  onClick: () => void,
+): Phaser.GameObjects.Container {
+  const g = scene.add.graphics();
+  const r = Math.min(22, h / 2);
+  g.fillStyle(N.ink, 1).fillRoundedRect(-w / 2, -h / 2 + 6, w, h, r);
+  g.fillStyle(hexToNumber(shade(color, -0.15)), 1).fillRoundedRect(-w / 2, -h / 2, w, h, r);
+  g.fillStyle(hexToNumber(shade(color, 0.12)), 1).fillRoundedRect(-w / 2 + 4, -h / 2 + 4, w - 8, h * 0.5, r - 4);
+  g.lineStyle(5, N.ink, 1).strokeRoundedRect(-w / 2, -h / 2, w, h, r);
+  const t = title(scene, 0, 0, text, size, { color: '#ffffff', stroke: Math.max(4, size * 0.18) });
+  if (t.width > w - 16) t.setScale((w - 16) / t.width);
+  const c = scene.add.container(x, y, [g, t]).setSize(w, h).setInteractive({ useHandCursor: true });
+  c.on('pointerover', () => scene.tweens.add({ targets: c, scale: 1.06, duration: 120, ease: 'Back.easeOut' }));
+  c.on('pointerout', () => scene.tweens.add({ targets: c, scale: 1, duration: 120 }));
+  c.on('pointerdown', () => {
+    audio.sfx('select');
+    scene.tweens.add({ targets: c, scaleY: 0.9, duration: 70, yoyo: true });
+    onClick();
+  });
+  return c;
 }

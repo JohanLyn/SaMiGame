@@ -19,7 +19,10 @@ export const DEV = {
   seed: params.has('seed') ? Number(params.get('seed')) : undefined,
 };
 
-export const offline = Boolean(DEV.minigame || DEV.ritual || DEV.scene || params.has('offline'));
+/** Demo: hele spillet i browseren uden server – 2 spillere på tastaturet + bots (`?demo` eller demo-build). */
+export const DEMO = params.has('demo') || import.meta.env.VITE_DEMO === '1';
+
+export const offline = DEMO || Boolean(DEV.minigame || DEV.ritual || DEV.scene || params.has('offline'));
 
 export const net: Net = offline ? new OfflineNet() : new HostSession();
-export const keyboard = new KeyboardPlayers(params.has('keys'));
+export const keyboard = new KeyboardPlayers(DEMO || params.has('keys'));

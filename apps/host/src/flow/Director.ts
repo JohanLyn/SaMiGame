@@ -76,6 +76,8 @@ export class Director {
   private current: { def: MinigameDef; teams: Teams | null } | null = null;
   private ritualOrder: RitualDef[] = [];
   private finalePlayed = false;
+  /** Et enkelt minigame spilles fra demo-lobbyen. */
+  private single = false;
 
   constructor(
     readonly game: Phaser.Game,
@@ -137,6 +139,7 @@ export class Director {
 
   startGame(seeds: PlayerSeed[], rounds: number): void {
     this.state = new GameState(seeds, rounds, DEV.seed);
+    this.single = false;
     this.finalePlayed = false;
     this.ritualOrder = [];
     this.nextRound();
@@ -268,6 +271,12 @@ export class Director {
   }
 
   resultsDone(): void {
+    if (this.single) {
+      // Demo: et enkelt minigame er spillet – tilbage til lobbyen.
+      this.single = false;
+      this.state = null;
+      return this.goto(SCENES.lobby);
+    }
     if (offline && DEV.minigame) {
       // Dev: spil samme minigame igen.
       return this.devMinigame(DEV.minigame);
@@ -345,6 +354,18 @@ export class Director {
     }
     this.goto(SCENES.lobby);
     return true;
+  }
+
+  /** Spil ét enkelt minigame (demo-lobbyens minigame-vælger) og vend tilbage til lobbyen bagefter. */
+  playSingle(seeds: PlayerSeed[], id: string): void {
+    const def = this.minigames.find((m) => m.id === id);
+    if (!def) return;
+    this.state = new GameState(seeds, 1, DEV.seed);
+    this.state.startRound();
+    this.single = true;
+    this.finalePlayed = false;
+    this.current = { def, teams: null };
+    this.afterChaos();
   }
 
   private devMinigame(id: string): void {

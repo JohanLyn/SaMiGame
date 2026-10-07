@@ -15,7 +15,15 @@ Design: `docs/PLAN.md`. Udførelsesplan (bølger, arkitektur): `docs/EXECUTION.m
 - [x] Controller: layouts + Byg-din-Bloks-editor
 - [x] `scripts/shoot.mjs` screenshot-værktøj, e2e opdateret
 
-## Bølge 1 – parallelle agenter (i gang)
-A FFA I · B FFA II · C 2v2 · D 1v3 · E Hub-ritualer · F Finale/awards
+## Bølge 1 – parallelle agenter ✅
+- 16 minigames + finalen Kaos-Tårnet (`apps/host/src/minigames/`), 5 ritualer (`apps/host/src/rituals/`), ny ChaosScene og AwardsScene.
+- A, B og C blev stoppet af en API-grænse lige før deres sidste officielle slut-test; deres spil er kørt igennem af mig bagefter (se nedenfor).
 
-## Bølge 2 – integration, art director, polering, deploy (ikke startet)
+## Afrunding ✅
+- Demo-tilstand (`?demo`, `build:demo`): 2 tastatur-spillere + bots, START-knap og minigame-vælger i lobbyen. Udgivet som privat demo-link (se README).
+- Æ/Ø/Å i SVG-tekst rettet (UTF-8-header).
+
+## Bølge 2 – næste skridt (ikke startet)
+- Art director-gennemgang af alle skærme og poleringsrunde (se `docs/RESUME.md`, trin 3).
+- Kendte småting: navneskilte kan overlappe tekst i lobbyen; Sumo-pandens grå "olie"-ellipser; flytbar timer (`TimerHud`) og navneskilt-position på `Blok` ønsket af agenterne.
+- Udvidet e2e (`e2e/lobby.spec.ts`: 2 telefoner, 3 runder, finale, priser) er skrevet men ikke kørt endnu.

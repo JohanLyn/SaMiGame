@@ -10,7 +10,13 @@ Et gakket partyspil i stil med Mario Party – **uden spillebræt**. Spillet kø
 
 Design: [docs/PLAN.md](docs/PLAN.md) · Stilguide: [docs/STYLE.md](docs/STYLE.md) · Udviklerguide: [docs/DEV_GUIDE.md](docs/DEV_GUIDE.md) · Status: [docs/PROGRESS.md](docs/PROGRESS.md)
 
-## Spil det derhjemme
+## Prøv demoen i browseren
+
+**Demo-link:** https://claude.ai/artifact/RbGy46Fag4CVMJzjbTCBk5 (privat – kan deles fra sidens Del-menu)
+
+Demoen kører helt i browseren uden server og telefoner: **Spiller 1** styrer med **WASD + Mellemrum**, **Spiller 2** med **piletaster + Enter**, og resten er bots (en bot tager også over for dig, når du ikke trykker). Klik **START SPILLET** for et helt spil, eller vælg ét af minigamesene i listen til venstre. Klik én gang på skærmen for lyd. Den samme tilstand findes lokalt på `http://localhost:5173/?demo`, og `npm run build:demo -w @samigame/host` bygger den til `apps/host/dist-demo/`.
+
+## Spil det derhjemme (med telefoner)
 
 Kræver Node 22+.
 

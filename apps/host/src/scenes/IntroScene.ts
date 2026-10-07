@@ -89,7 +89,8 @@ export class IntroScene extends Phaser.Scene {
       body(this, p.role === 'ffa' ? 1420 : 1452, y + 22, roleLabel(p), 26, { color: C.cream, stroke: 6 }).setOrigin(0, 0.5);
       const check = title(this, 1790, y, '…', 64, { color: C.cream });
       this.checks.push(check);
-      if (p.isBot) this.time.delayedCall(600 + Math.random() * 1600, () => this.markReady(i));
+      // Bots – og spillere uden forbundet telefon (fx demo med tastatur) – er klar af sig selv.
+      if (p.isBot || !net.players[p.slot]?.connected) this.time.delayedCall(600 + Math.random() * 1600, () => this.markReady(i));
     });
 
     // Telefoner

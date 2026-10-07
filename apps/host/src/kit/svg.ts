@@ -22,10 +22,12 @@ function withSize(svg: string, w: number, h: number): string {
 
 /** Phaser's loader kræver base64 i data-URI'er. */
 export function svgBase64(svg: string): string {
+  // Eksplicit UTF-8-header, så Æ/Ø/Å i <text> ikke bliver forvansket.
+  if (!svg.startsWith('<?xml')) svg = `<?xml version="1.0" encoding="UTF-8"?>${svg}`;
   const bytes = new TextEncoder().encode(svg);
   let bin = '';
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-  return `data:image/svg+xml;base64,${btoa(bin)}`;
+  return `data:image/svg+xml;charset=utf-8;base64,${btoa(bin)}`;
 }
 
 const pending = new Map<string, Promise<string>>();
