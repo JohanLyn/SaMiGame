@@ -87,15 +87,16 @@ export class TeamsScene extends Phaser.Scene {
         : { left: teams.teams[0], right: teams.teams[1] };
       const place = (slots: number[], centerX: number, teamIdx: number) => {
         slots.forEach((slot, i) => {
-          const x = centerX + (i - (slots.length - 1) / 2) * (slots.length > 2 ? 250 : 300);
+          const x = centerX + (i - (slots.length - 1) / 2) * (slots.length > 2 ? 240 : 300);
           const b = bloks[slot];
           this.tweens.add({ targets: b, x, duration: 600, ease: 'Back.easeOut', onComplete: () => b.cheer() });
           b.setRing(solo ? (teamIdx === 0 ? C.sun : C.sky) : TEAM_HEX[teamIdx]);
         });
       };
+      const rightX = solo ? W * 0.73 : W * 0.7;
       // Holdfarvet felt bag hver side, så holdene læses med det samme
       const zone = (cx: number, count: number, color: string, delay: number) => {
-        const w = count > 2 ? 680 : count === 2 ? 620 : 360;
+        const w = count > 2 ? 760 : count === 2 ? 620 : 360;
         const n = Phaser.Display.Color.HexStringToColor(color).color;
         const g = this.add.graphics();
         g.fillStyle(n, 0.16).fillRoundedRect(-w / 2, -250, w, 380, 48);
@@ -106,24 +107,24 @@ export class TeamsScene extends Phaser.Scene {
         this.tweens.add({ targets: g, alpha: 0.7, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: delay + 400 });
       };
       zone(W * 0.27, sides.left.length, solo ? C.sun : TEAM_HEX[0], 0);
-      zone(W * 0.7, sides.right.length, solo ? C.sky : TEAM_HEX[1], 120);
+      zone(rightX, sides.right.length, solo ? C.sky : TEAM_HEX[1], 120);
       place(sides.left, W * 0.27, 0);
-      place(sides.right, W * 0.7, 1);
+      place(sides.right, rightX, 1);
 
       const leftName = solo ? `${players[teams.teams[0][0]].name}` : TEAM_NAMES[0];
       const rightName = solo ? 'Trioen' : TEAM_NAMES[1];
       const lcol = solo ? C.sun : TEAM_HEX[0];
       const rcol = solo ? C.sky : TEAM_HEX[1];
       const l = title(this, W * 0.27, 420, leftName, 72, { color: lcol });
-      const r = title(this, W * 0.7, 420, rightName, 72, { color: rcol });
+      const r = title(this, rightX, 420, rightName, 72, { color: rcol });
       fx.popIn(l, 200);
       fx.popIn(r, 300);
-      if (solo) body(this, W * 0.27, 500, 'Alene mod alle! (3 point ved sejr)', 32, { stroke: 6 });
+      if (solo) body(this, W * 0.27, 945, 'Alene mod alle! (3 point ved sejr)', 34, { stroke: 7 });
 
-      const vs = title(this, W / 2 - 20, 620, 'VS', 150, { color: C.tomato });
+      const vs = title(this, solo ? 860 : W / 2 - 20, 620, 'VS', 150, { color: C.tomato });
       fx.popIn(vs, 500);
       this.tweens.add({ targets: vs, scale: 1.12, duration: 400, yoyo: true, repeat: -1, delay: 900 });
-      fx.burst(W / 2, 620, { texture: 'kit-spark', color: [N.sun, N.tomato], count: 20, speed: 700 });
+      fx.burst(solo ? 860 : W / 2, 620, { texture: 'kit-spark', color: [N.sun, N.tomato], count: 20, speed: 700 });
       void shade;
     });
 

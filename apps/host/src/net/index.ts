@@ -12,6 +12,8 @@ export const DEV = {
   minigame: params.get('minigame'),
   ritual: params.get('ritual'),
   scene: params.get('scene'),
+  /** Minigame som scene-preview (?scene=...) bruger, fx pick=toiletter for 1 mod 3. */
+  pick: params.get('pick'),
   bots: Number(params.get('bots') ?? 4),
   speed: Math.max(0.25, Math.min(8, Number(params.get('speed') ?? 1))),
   autostart: params.has('autostart'),

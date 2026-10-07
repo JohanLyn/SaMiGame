@@ -391,7 +391,7 @@ export class Director {
     state.players.forEach((p, i) => (p.score = [7, 12, 4, 9][i]));
     state.players.forEach((p, i) => (p.stats = { firsts: [2, 3, 0, 1][i], falls: [1, 0, 4, 2][i], taps: [120, 80, 300, 40][i], lasts: [1, 0, 3, 1][i] }));
     state.round = 3;
-    const def = this.regularMinigames[0] ?? this.minigames[0];
+    const def = this.minigames.find((m) => m.id === DEV.pick) ?? this.regularMinigames[0] ?? this.minigames[0];
     this.current = { def, teams: null };
     switch (name) {
       case 'round':
