@@ -89,8 +89,8 @@ Replikkerne står i `apps/host/src/kit/audio/voiceLines.ts` (nøgle → stil + e
 
 1. Hent Piper (`piper_linux_x86_64.tar.gz` fra github.com/rhasspy/piper, release `2023.11.14-2`) og stemmen
    `voice-en-us-libritts-high.tar.gz` (release `v0.0.2`) og pak dem ud.
-2. `npx tsx scripts/voice/build-voice.ts --piper <piper-mappe> --model <mappe>/en-us-libritts-high.onnx --speaker 90 --only <nøgle1>,<nøgle2>`
-   (uden `--only` laves alle klip forfra). `--speaker` vælger taleren (0–903); vi bruger 90.
+2. `npx tsx scripts/voice/build-voice.ts --piper <piper-mappe> --model <mappe>/en-us-libritts-high.onnx --speaker 648 --only <nøgle1>,<nøgle2>`
+   (uden `--only` laves alle klip forfra). `--speaker` vælger taleren (0–903); vi bruger 648.
 
-Stilene (`hype`/`call`/`aside`) styrer tempo, tonehøjde, rumklang og – ved afspilning – bom/whoosh og hvor højt.
+Stilene (`hype`/`call`/`aside`) styrer tempo, tonehøjde, rumklang og – ved afspilning – whoosh/glitter-klokker og hvor højt.
 Replikker kan ikke indeholde spillernavne (de er forudindspillede), så brug generiske kald.

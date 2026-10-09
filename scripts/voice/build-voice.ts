@@ -1,6 +1,6 @@
 // Laver speakerens lydklip (apps/host/src/kit/audio/voice/*.mp3) ud fra replikkerne i kit/audio/voiceLines.ts.
 //
-//   npx tsx scripts/voice/build-voice.ts --piper <mappe med piper> --model <stemme.onnx> [--speaker 90] [--only welcome,go] [--out <mappe>]
+//   npx tsx scripts/voice/build-voice.ts --piper <mappe med piper> --model <stemme.onnx> [--speaker 648] [--only welcome,go] [--out <mappe>]
 //
 // Kræver Piper (https://github.com/rhasspy/piper, release 2023.11.14-2) og ffmpeg med libmp3lame.
 // Stemmen er "en-us-libritts-high" fra Piper v0.0.2 (LibriTTS, CC BY 4.0) – speaker-nummeret vælger taleren.
@@ -22,41 +22,42 @@ const opt = (name: string, fallback?: string): string => {
 
 const piperDir = resolve(opt('piper'));
 const model = resolve(opt('model'));
-const speaker = Number(opt('speaker', '90'));
+const speaker = Number(opt('speaker', '648'));
 const out = resolve(opt('out', new URL('../../apps/host/src/kit/audio/voice/', import.meta.url).pathname));
 const only = opt('only', '').split(',').filter(Boolean);
 
-/** Piper-indstillinger og ffmpeg-kæde pr. stil. `rate` < 1 sænker stemmen (uden at ændre tempoet). */
-const STYLE: Record<VoiceStyle, { length: number; rate: number; echo: string; gain: number }> = {
-  hype: { length: 1.18, rate: 0.86, echo: 'aecho=0.8:0.55:55|110|190|300:0.30|0.20|0.13|0.07', gain: 3 },
-  call: { length: 1.06, rate: 0.9, echo: 'aecho=0.85:0.5:45|95|160:0.20|0.12|0.06', gain: 2 },
-  aside: { length: 1.0, rate: 0.93, echo: 'aecho=0.9:0.6:35|80:0.12|0.06', gain: 1 },
+/**
+ * Piper-indstillinger og ffmpeg-kæde pr. stil. Målet er en glad, energisk børne-tv-vært:
+ * hurtig og livlig levering, tonehøjden løftet en anelse (`rate` > 1), lys og ren klang og kun lidt rumklang.
+ */
+const STYLE: Record<VoiceStyle, { length: number; noise: number; rate: number; echo: string; gain: number }> = {
+  hype: { length: 0.9, noise: 0.95, rate: 1.07, echo: 'aecho=0.85:0.4:28|55:0.14|0.07', gain: 2 },
+  call: { length: 0.93, noise: 0.9, rate: 1.05, echo: 'aecho=0.9:0.4:25|50:0.10|0.05', gain: 1 },
+  aside: { length: 0.95, noise: 0.9, rate: 1.05, echo: 'aecho=0.9:0.4:22:0.06', gain: 0 },
 };
 
 function chain(style: VoiceStyle): string {
   const s = STYLE[style];
   return [
-    'highpass=f=80',
+    'highpass=f=110',
     // Fjern TTS-sus før alt andet forstærker det
     'afftdn=nr=12:nf=-42',
-    // Dybere stemme: sænk tonehøjden og hold tempoet
+    // Lysere stemme: løft tonehøjden lidt og hold tempoet
     `asetrate=22050*${s.rate}`,
     'aresample=44100',
     `atempo=${(1 / s.rate).toFixed(4)}`,
-    // "Arena"-EQ: fylde i bunden, nærvær i mellemtonen, tæmmede s-lyde
-    'equalizer=f=140:t=q:w=1:g=4',
-    'equalizer=f=2800:t=q:w=1.2:g=3',
-    'highshelf=f=6500:g=-6',
-    'deesser=i=0.6:m=0.5:f=0.5',
-    // Kompression + let mætning giver den kraftige speaker-lyd
-    'acompressor=threshold=0.08:ratio=5:attack=4:release=140:makeup=2',
+    // Lys og venlig EQ: mindre mudder, nærvær og lidt luft – men tæmmede s-lyde
+    'equalizer=f=300:t=q:w=1:g=-2',
+    'equalizer=f=3000:t=q:w=1.2:g=3',
+    'highshelf=f=8000:g=1',
+    'deesser=i=0.5:m=0.5:f=0.5',
+    // Blød kompression, så alt kan høres over musikken (ingen forvrængning)
+    'acompressor=threshold=0.1:ratio=3:attack=5:release=150:makeup=2',
     `volume=${s.gain}dB`,
-    'asoftclip=type=tanh',
-    'lowpass=f=8500',
-    // Plads til rumklangens hale, så arena-ekko
-    'apad=pad_dur=0.7',
+    'lowpass=f=10000',
+    'apad=pad_dur=0.4',
     s.echo,
-    'loudnorm=I=-14:TP=-1.5:LRA=9',
+    'loudnorm=I=-15:TP=-1.5:LRA=10',
     // Fjern stilhed i starten (vigtigt for timing) og i slutningen
     'silenceremove=start_periods=1:start_threshold=-45dB',
     'areverse',
@@ -82,7 +83,7 @@ for (const style of Object.keys(STYLE) as VoiceStyle[]) {
   const input = jobs.map((j) => JSON.stringify({ text: j.text, speaker_id: speaker, output_file: j.wav })).join('\n');
   const res = spawnSync(
     piper,
-    ['-m', model, '--json-input', '--length_scale', String(STYLE[style].length), '--noise_scale', '0.8', '--noise_w', '1.0', '--sentence_silence', '0.15'],
+    ['-m', model, '--json-input', '--length_scale', String(STYLE[style].length), '--noise_scale', String(STYLE[style].noise), '--noise_w', '1.1', '--sentence_silence', '0.1'],
     { input, env, stdio: ['pipe', 'ignore', 'pipe'] },
   );
   if (res.status !== 0) throw new Error(`piper fejlede: ${res.stderr}`);

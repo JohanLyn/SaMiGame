@@ -18,7 +18,7 @@ const STREAKS: { voice: VoiceKey; text: string }[] = [
   { voice: 'doubleWin', text: 'DOBBELT-SEJR!' },
   { voice: 'tripleWin', text: 'TREDOBBELT-SEJR!' },
   { voice: 'unstoppable', text: 'USTOPPELIG!' },
-  { voice: 'godlike', text: 'GUDEAGTIG!' },
+  { voice: 'superstar', text: 'SUPERSTJERNE!' },
 ];
 
 /** Resultat: placeringer, point flyver ind på stillingen, og den førende får kronen. */

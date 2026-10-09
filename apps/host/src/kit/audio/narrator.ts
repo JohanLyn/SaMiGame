@@ -3,8 +3,8 @@ import { VOICE, type VoiceKey, type VoiceStyle } from './voiceLines';
 export type { VoiceKey } from './voiceLines';
 
 /**
- * Speakeren: forudindspillede engelske arena-replikker (se voiceLines.ts) afspillet via WebAudio.
- * Musikken dukkes, mens han taler, og `hype`-replikker får et dybt bom og et whoosh under sig.
+ * Speakeren: forudindspillede engelske replikker (se voiceLines.ts) afspillet via WebAudio.
+ * Musikken dukkes, mens speakeren taler, og `hype`-replikker får et whoosh og glitter-klokker under sig.
  */
 
 const CLIP_URLS = import.meta.glob('./voice/*.mp3', { eager: true, query: '?url', import: 'default' }) as Record<string, string>;

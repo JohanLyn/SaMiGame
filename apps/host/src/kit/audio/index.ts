@@ -105,15 +105,15 @@ class AudioManager {
   }
 
   /**
-   * Speakerens kanal: tør stemme i midten + to korte, panorerede ekkoer, så den lyder bred som i en arena.
+   * Speakerens kanal: tør stemme i midten + to svage, korte, panorerede ekkoer, så den fylder lidt i stereo.
    */
   private arenaBus(): GainNode {
     const input = this.ctx.createGain();
     input.gain.value = 0.95;
     input.connect(this.master);
     for (const [ms, pan, level] of [
-      [19, 0.7, 0.32],
-      [31, -0.7, 0.26],
+      [17, 0.5, 0.18],
+      [27, -0.5, 0.14],
     ] as const) {
       const delay = this.ctx.createDelay(0.1);
       delay.delayTime.value = ms / 1000;
@@ -137,7 +137,7 @@ class AudioManager {
     g.linearRampToValueAtTime(this.musicLevel, t + seconds + 0.5);
   }
 
-  /** "Wow"-effekten under store replikker: et kort whoosh ind og et dybt bom. */
+  /** "Wow"-effekten under store replikker: et let whoosh ind og en glad, glitrende klokke-arpeggio. */
   private impact(): void {
     const ctx = this.ctx;
     const t = ctx.currentTime;
@@ -151,28 +151,32 @@ class AudioManager {
     whoosh.buffer = this.noise;
     const bp = ctx.createBiquadFilter();
     bp.type = 'bandpass';
-    bp.Q.value = 1.2;
-    bp.frequency.setValueAtTime(300, t);
-    bp.frequency.exponentialRampToValueAtTime(3500, t + 0.22);
+    bp.Q.value = 1.5;
+    bp.frequency.setValueAtTime(800, t);
+    bp.frequency.exponentialRampToValueAtTime(6000, t + 0.2);
     const wg = ctx.createGain();
     wg.gain.setValueAtTime(0.0001, t);
-    wg.gain.exponentialRampToValueAtTime(0.25, t + 0.18);
-    wg.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+    wg.gain.exponentialRampToValueAtTime(0.12, t + 0.15);
+    wg.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
     whoosh.connect(bp).connect(wg).connect(this.sfxBus);
     whoosh.start(t);
-    whoosh.stop(t + 0.35);
-    // Bom: sinus der falder fra 120 til 35 Hz
-    const boom = ctx.createOscillator();
-    boom.type = 'sine';
-    boom.frequency.setValueAtTime(120, t + 0.05);
-    boom.frequency.exponentialRampToValueAtTime(35, t + 0.7);
-    const bg = ctx.createGain();
-    bg.gain.setValueAtTime(0.0001, t + 0.05);
-    bg.gain.exponentialRampToValueAtTime(0.9, t + 0.07);
-    bg.gain.exponentialRampToValueAtTime(0.0001, t + 1.0);
-    boom.connect(bg).connect(this.master);
-    boom.start(t + 0.05);
-    boom.stop(t + 1.05);
+    whoosh.stop(t + 0.3);
+    // Glitter: en hurtig dur-arpeggio i klokkeklang (C-E-G-C-E)
+    [84, 88, 91, 96, 100].forEach((note, i) => {
+      const at = t + 0.02 + i * 0.045;
+      const osc = ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.value = 440 * Math.pow(2, (note - 69) / 12);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(0.09, at + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + 0.45);
+      const pan = ctx.createStereoPanner();
+      pan.pan.value = -0.5 + i * 0.25;
+      osc.connect(g).connect(pan).connect(this.sfxBus);
+      osc.start(at);
+      osc.stop(at + 0.5);
+    });
   }
 
   private buffer(name: keyof typeof SFX): AudioBuffer {

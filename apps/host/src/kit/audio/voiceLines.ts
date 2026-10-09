@@ -1,11 +1,11 @@
 /**
- * Speakerens replikker (engelsk arena-announcer). Hver nøgle har én eller flere varianter; der vælges tilfældigt.
+ * Speakerens replikker (glad, energisk engelsk vært – børnevenlig). Hver nøgle har én eller flere varianter; der vælges tilfældigt.
  * Lydfilerne ligger i `voice/<nøgle>-<n>.mp3` og laves med `scripts/voice/build-voice.ts` (se docs/DEV_GUIDE.md).
  *
  * Stil:
- * - `hype`: store øjeblikke – dybere, langsommere, mere rumklang, og spilles med bom + whoosh.
+ * - `hype`: store øjeblikke – mest energi og lidt mere rumklang; spilles med whoosh + glitter-klokker.
  * - `call`: almindelige speaker-kald.
- * - `aside`: små kommentarer – tørrere og lidt lavere.
+ * - `aside`: små kommentarer – tørrere og lidt lavere i lydstyrke.
  */
 export type VoiceStyle = 'hype' | 'call' | 'aside';
 
@@ -20,8 +20,8 @@ const aside = (...lines: string[]): VoiceLine => ({ style: 'aside', lines });
 
 export const VOICE = {
   // --- Fælles flow -----------------------------------------------------------
-  welcome: hype('Welcome to SaMi Party!', 'Party on the island!', 'Get in here, everybody!'),
-  start: hype('Let the chaos begin!', 'Here we go!', 'Are you ready? Because I am not!'),
+  welcome: hype('Hello, everybody! Welcome to SaMi Party!', 'Woohoo! Party on the island!', 'Come on in, everybody! It is party time!'),
+  start: hype('Yay! Let the fun begin!', 'Here we go, here we go!', 'Are you ready? I am super ready!'),
   // Runde-skærmen (`round_<n>`, sidste runde før finalen får `finalRound`)
   round_1: hype('Round one!'),
   round_2: hype('Round two!'),
@@ -39,46 +39,46 @@ export const VOICE = {
   round_14: hype('Round fourteen!'),
   round_15: hype('Round fifteen!'),
   finalRound: hype('Final round!'),
-  ritual: call('What is next?', 'The suspense is killing me!', 'Drum roll, please!'),
-  chaos: hype('Chaos card!', 'Uh oh! Things are about to get weird!', 'Nobody saw that coming!'),
-  twoVsTwo: hype('Two versus two!'),
-  oneVsThree: hype('One... versus... three!'),
-  go: hype('Go!', 'Fight!', 'Go, go, go!'),
-  finish: hype('Finish!', 'Time!', 'Game over!'),
-  win: hype('Winner!', 'Spectacular!', 'What a performance!', 'Magnificent!'),
-  draw: call('It is a draw!'),
-  ouch: aside('Ouch!', 'That has got to hurt!', 'Oof!'),
-  lead: call('We have a new leader!', 'Look who is on top now!'),
-  oneOut: aside('One down!'),
-  oneLeft: hype('Only one left!'),
+  ritual: call('Ooh, what is next?', 'I can not wait to see!', 'Drum roll, please!'),
+  chaos: hype('Wow! A chaos card!', 'Uh oh! Things are about to get silly!', 'Whoa! Nobody saw that coming!'),
+  twoVsTwo: hype('Two versus two! Team up!'),
+  oneVsThree: hype('One versus three! Wow!'),
+  go: hype('Go!', 'Let us play!', 'Go, go, go!'),
+  finish: hype('Finish!', 'Time is up!', 'And... stop!'),
+  win: hype('Woohoo! We have a winner!', 'Amazing!', 'Wow, what a superstar!', 'Fantastic!'),
+  draw: call('Ooh, it is a draw!'),
+  ouch: aside('Oopsie!', 'Whoopsie daisy!', 'Uh oh!'),
+  lead: call('Ooh, we have a new leader!', 'Look who is on top now!'),
+  oneOut: aside('Oh no, one is out!'),
+  oneLeft: hype('Only one left! Wow!'),
   doubleWin: hype('Double win!'),
   tripleWin: hype('Triple win!'),
-  unstoppable: hype('Unstoppable!'),
-  godlike: hype('Godlike!'),
-  finale: hype('The grand finale! The Chaos Tower!', 'This is it! Everything is on the line!'),
-  awards: hype('It is award time!', 'And the winner is...'),
-  awardWinner: hype('Congratulations!', 'Give it up for them!', 'What a legend!'),
+  unstoppable: hype('Unstoppable! Wow!'),
+  superstar: hype('Superstar!'),
+  finale: hype('It is the grand finale! The Chaos Tower!', 'This is it! The big finale!'),
+  awards: hype('Yay! It is award time!', 'And the winner is...'),
+  awardWinner: hype('Congratulations!', 'Let us give them a big cheer!', 'Hooray!'),
   standings: call('And now... the final standings!'),
-  champion: hype('We have a champion! Give it up for the winner of SaMi Party!'),
+  champion: hype('Hooray! We have a champion! Give it up for the winner of SaMi Party!'),
 
   // --- "Næste spil" pr. minigame ----------------------------------------------
-  next_badekar: hype('Next game... Bathtub Bobsled!'),
-  next_bowling: hype('Next game... Meatball Bowling!'),
+  next_badekar: hype('Next game is... Bathtub Bobsled!'),
+  next_bowling: hype('Next game is... Meatball Bowling!'),
   next_fisketur: hype("Next game... The Cat's Fishing Trip!"),
-  next_kagebombe: hype('Next game... Cake Bomb!'),
-  next_kanon: hype('Next game... Cannon Chicken!'),
-  next_kaostaarn: hype('Final game... The Chaos Tower!'),
-  next_kogebog: hype('Next game... Pop-up Cookbook!'),
-  next_kokken: hype('Next game... Chef Says!'),
-  next_prutte: hype('Next game... Fart Roulette!'),
-  next_selfie: hype('Next game... Selfie Surgeon!'),
-  next_sjippe: hype('Next game... Skipping Eel!'),
-  next_skrig: hype('Next game... Scream Balloon!'),
-  next_spaghetti: hype('Next game... Spaghetti Tug of War!'),
-  next_spejldans: hype('Next game... Mirror Dance!'),
-  next_sumo: hype('Next game... Meatball Sumo!'),
-  next_svampe: hype('Next game... Mushroom Roulette!'),
-  next_toiletter: hype('Next game... Toilet Hide and Seek!'),
+  next_kagebombe: hype('Next game is... Cake Bomb!'),
+  next_kanon: hype('Next game is... Cannon Chicken!'),
+  next_kaostaarn: hype('And the final game is... The Chaos Tower!'),
+  next_kogebog: hype('Next game is... Pop-up Cookbook!'),
+  next_kokken: hype('Next game is... Chef Says!'),
+  next_prutte: hype('Next game is... Fart Roulette!'),
+  next_selfie: hype('Next game is... Selfie Surgeon!'),
+  next_sjippe: hype('Next game is... Skipping Eel!'),
+  next_skrig: hype('Next game is... Scream Balloon!'),
+  next_spaghetti: hype('Next game is... Spaghetti Tug of War!'),
+  next_spejldans: hype('Next game is... Mirror Dance!'),
+  next_sumo: hype('Next game is... Meatball Sumo!'),
+  next_svampe: hype('Next game is... Mushroom Roulette!'),
+  next_toiletter: hype('Next game is... Toilet Hide and Seek!'),
 
   // --- Ritualer ---------------------------------------------------------------
   fishBiteMaybe: call('A bite! ...or is it?'),
@@ -98,7 +98,7 @@ export const VOICE = {
   eelStart: call('Jump over the eel!'),
   sprint: hype('Sprint!'),
   hiccup: aside('Hic!'),
-  eelHit: aside('Splat! Into the swamp!'),
+  eelHit: aside('Splish! Into the swamp!'),
   doubleSplat: hype('Double splat!'),
   eelChamp: hype('Skipping champion!'),
 
@@ -130,10 +130,10 @@ export const VOICE = {
   faster: hype('Faster! Faster!'),
   again: aside('Everyone? Let us do that again!'),
   sausage: aside('Ha! It was a sausage!'),
-  splatOut: aside('Splat! You are out!'),
+  splatOut: aside('Splat! Oh no, you are out!'),
   chefImpressed: hype('The chef is impressed!'),
 
-  catHungry: call('The cat is hungry! Swim for your life!'),
+  catHungry: call('The cat is hungry! Swim, little fishies, swim!'),
   fishEscaped: hype('The fish got away!'),
   bucketFull: hype('The bucket is full!'),
   oneFishLeft: call('Only one fish left!'),
@@ -143,7 +143,7 @@ export const VOICE = {
   fewerPumps: call('Fewer pumps now!'),
   lastRound: hype('Final round!'),
   phew: aside('Phew!', 'It held!', 'My heart is in my throat!'),
-  megaFart: hype('Mega fart! Bye bye!'),
+  megaFart: hype('Mega fart! Hee hee! Bye bye!'),
 
   screamStart: hype('Scream! Blow up the balloon, but not too much!'),
   screamLouder: call('Ten seconds! Scream louder!'),
@@ -162,7 +162,7 @@ export const VOICE = {
 
   towerWelcome: hype('Welcome to the finale! The Chaos Tower! First to the top wins the trophy!'),
   climb: call('Climb! Climb! Climb!'),
-  towerTenSec: hype('Ten seconds left! Climb for your life!'),
+  towerTenSec: hype('Ten seconds left! Climb, climb, climb!'),
   towerTop: hype('We have someone at the top! The trophy is home!'),
   towerAlsoUp: call('Another one made it!'),
   rooftops: aside('Over the rooftops! Wave to mom!'),
@@ -192,7 +192,7 @@ export const VOICE = {
   scalpels: call('Ten seconds! The scalpels are glowing!'),
   scalpelsDown: call('Scalpels down! Let us see the likeness!'),
   twin: hype('It is a twin!'),
-  meh: aside('The duke is... mildly satisfied.'),
+  meh: aside('Hmm... not bad!'),
 
   mushroomStart: call('Stand on the right mushroom!'),
   red: hype('Red!'),
