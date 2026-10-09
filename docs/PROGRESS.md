@@ -29,6 +29,11 @@ Design: `docs/PLAN.md`. Udførelsesplan (bølger, arkitektur): `docs/EXECUTION.m
 - Rettet: bots kan ikke længere få samme navn/figur som en menneskelig spiller; resultat-skærmens vindertekst ligger fri af kronen; ritual-titler skaleres ind i båndet; intro-kortets styring/kaos-linje forankret i bunden (reglerne skaleres); holdfarvede felter + balanceret 1 mod 3-layout i hold-skærmen; kaos-konfetti bag kortet; lyd-hint flyttet væk fra solen i lobbyen; Sumo har fået køkkenkulisse (redskaber, krydderikrukker med øjne, komfur) og gyldne oliepytter i stedet for grå ellipser; Kogebogens advarsel står stort på bogryggen; tydeligere rolleskilte i Badekar og Kagebombe; større hint i Spejldans; telefonlobbyens navnefelt/Jubel-knap passer på smalle skærme.
 - Demo genopbygget og udgivet på samme link (`scripts/pack-demo.py`).
 
+## Engelsk arena-speaker ✅
+- Browserens danske talesyntese er erstattet af 189 forudindspillede engelske speaker-klip (Piper + LibriTTS, CC BY 4.0), behandlet til en dyb arena-lyd. `hype`-replikker får bom + whoosh, musikken dukkes, runde-skærmen kalder "Round one!" osv., og resultat-skærmen kalder sejre i træk (Double win → Triple win → Unstoppable → Godlike).
+- Replikker: `kit/audio/voiceLines.ts`. Nye klip: `scripts/voice/build-voice.ts` (se DEV_GUIDE). Stemme: speaker 90 – kan skiftes og genereres på få minutter.
+- Kaos-kortet "Rime-Rod" (fortælleren taler i rim) har aldrig gjort noget og passer ikke til forudindspillede klip – bør skiftes ud.
+
 ## Næste skridt (forslag)
 - Vulkan-ritualet: fjer-pindene tegnes hen over navneskiltene.
 - Lyd/tekst-gennemgang på et rigtigt TV med rigtige telefoner (afstand, latency).
