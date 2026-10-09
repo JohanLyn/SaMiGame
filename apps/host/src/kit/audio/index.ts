@@ -1,11 +1,11 @@
 import { ZZFX } from 'zzfx';
 import { MusicPlayer, type MusicTheme } from './music';
-import { Narrator } from './narrator';
+import { Narrator, type VoiceKey } from './narrator';
 import { SFX, type SfxName } from './sfx';
 
 export type { MusicTheme } from './music';
 export type { SfxName } from './sfx';
-export type { LineCategory } from './narrator';
+export type { VoiceKey } from './narrator';
 
 /**
  * Al lyd i spillet går herigennem: `audio.sfx('pop')`, `audio.music('game')`, `audio.say('win')`.
@@ -17,9 +17,12 @@ class AudioManager {
   private readonly master: GainNode;
   private readonly sfxBus: GainNode;
   private readonly musicBus: GainNode;
+  private readonly voiceBus: GainNode;
+  private readonly musicLevel = 0.5;
+  private noise: AudioBuffer | null = null;
   private readonly cache = new Map<string, AudioBuffer>();
   private readonly player: MusicPlayer;
-  readonly narrator = new Narrator();
+  readonly narrator: Narrator;
   private wantedTheme: MusicTheme | null = null;
   muted = false;
 
@@ -31,9 +34,11 @@ class AudioManager {
     this.sfxBus.gain.value = 0.55;
     this.sfxBus.connect(this.master);
     this.musicBus = this.ctx.createGain();
-    this.musicBus.gain.value = 0.5;
+    this.musicBus.gain.value = this.musicLevel;
     this.musicBus.connect(this.master);
     this.player = new MusicPlayer(this.ctx, this.musicBus);
+    this.voiceBus = this.arenaBus();
+    this.narrator = new Narrator(this.ctx, this.voiceBus, (s) => this.duck(s), () => this.impact());
 
     const params = new URLSearchParams(location.search);
     if (params.has('mute')) this.setMuted(true);
@@ -51,14 +56,15 @@ class AudioManager {
   }
 
   unlock(): void {
-    if (this.ctx.state === 'suspended') void this.ctx.resume();
+    if (this.ctx.state === 'suspended') void this.ctx.resume().then(() => this.narrator.preload());
+    else this.narrator.preload();
   }
 
   setMuted(muted: boolean): void {
     this.muted = muted;
     this.master.gain.value = muted ? 0 : 1;
     this.narrator.enabled = !muted;
-    if (muted && typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
+    if (muted) this.narrator.stop();
   }
 
   /** Spil en lydeffekt. `pitch` 1 = normal, `pan` -1..1 (venstre..højre). */
@@ -93,8 +99,80 @@ class AudioManager {
     return this.wantedTheme;
   }
 
-  say(line: Parameters<Narrator['say']>[0], force = false): void {
+  /** Lad speakeren sige en replik (se voiceLines.ts). */
+  say(line: VoiceKey, force = false): void {
     this.narrator.say(line, force);
+  }
+
+  /**
+   * Speakerens kanal: tør stemme i midten + to korte, panorerede ekkoer, så den lyder bred som i en arena.
+   */
+  private arenaBus(): GainNode {
+    const input = this.ctx.createGain();
+    input.gain.value = 0.95;
+    input.connect(this.master);
+    for (const [ms, pan, level] of [
+      [19, 0.7, 0.32],
+      [31, -0.7, 0.26],
+    ] as const) {
+      const delay = this.ctx.createDelay(0.1);
+      delay.delayTime.value = ms / 1000;
+      const g = this.ctx.createGain();
+      g.gain.value = level;
+      const p = this.ctx.createStereoPanner();
+      p.pan.value = pan;
+      input.connect(delay).connect(g).connect(p).connect(this.master);
+    }
+    return input;
+  }
+
+  /** Skru musikken ned, mens speakeren taler. */
+  private duck(seconds: number): void {
+    const g = this.musicBus.gain;
+    const t = this.ctx.currentTime;
+    g.cancelScheduledValues(t);
+    g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(this.musicLevel * 0.3, t + 0.08);
+    g.setValueAtTime(this.musicLevel * 0.3, t + seconds);
+    g.linearRampToValueAtTime(this.musicLevel, t + seconds + 0.5);
+  }
+
+  /** "Wow"-effekten under store replikker: et kort whoosh ind og et dybt bom. */
+  private impact(): void {
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    if (!this.noise) {
+      this.noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+      const d = this.noise.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    // Whoosh: støj gennem et båndpas-filter der fejer op
+    const whoosh = ctx.createBufferSource();
+    whoosh.buffer = this.noise;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = 1.2;
+    bp.frequency.setValueAtTime(300, t);
+    bp.frequency.exponentialRampToValueAtTime(3500, t + 0.22);
+    const wg = ctx.createGain();
+    wg.gain.setValueAtTime(0.0001, t);
+    wg.gain.exponentialRampToValueAtTime(0.25, t + 0.18);
+    wg.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+    whoosh.connect(bp).connect(wg).connect(this.sfxBus);
+    whoosh.start(t);
+    whoosh.stop(t + 0.35);
+    // Bom: sinus der falder fra 120 til 35 Hz
+    const boom = ctx.createOscillator();
+    boom.type = 'sine';
+    boom.frequency.setValueAtTime(120, t + 0.05);
+    boom.frequency.exponentialRampToValueAtTime(35, t + 0.7);
+    const bg = ctx.createGain();
+    bg.gain.setValueAtTime(0.0001, t + 0.05);
+    bg.gain.exponentialRampToValueAtTime(0.9, t + 0.07);
+    bg.gain.exponentialRampToValueAtTime(0.0001, t + 1.0);
+    boom.connect(bg).connect(this.master);
+    boom.start(t + 0.05);
+    boom.stop(t + 1.05);
   }
 
   private buffer(name: keyof typeof SFX): AudioBuffer {

@@ -187,7 +187,7 @@ export class KogebogScene extends MinigameScene {
   }
 
   protected onStart(): void {
-    this.say('Stå i hullerne, ellers bliver I til pandekager!', true);
+    this.say('cookbookStart', true);
     this.startPage();
   }
 
@@ -304,7 +304,7 @@ export class KogebogScene extends MinigameScene {
       r.react = 0.15 + (1 - r.skill) * 0.9 + this.rng() * 0.25;
       r.target = null;
     }
-    if (this.pageNo === 5) this.say('Hullerne bliver mindre!');
+    if (this.pageNo === 5) this.say('smallerHoles');
   }
 
   /** Vinkel 0 = siden står op, 90 = fladt på gulvet. */
@@ -459,7 +459,7 @@ export class KogebogScene extends MinigameScene {
     if (squashed.length) {
       this.sfx('splat', { delay: 0.05, volume: 1.2 });
       for (const r of squashed) this.fx.floatText(r.x, r.y - 80, 'PANDEKAGE!', C.tomato, 46);
-      this.say(squashed.length > 1 ? 'Dobbelt-pandekage!' : 'ouch');
+      this.say(squashed.length > 1 ? 'doublePancake' : 'ouch');
     } else {
       this.sfx('ding', { delay: 0.1 });
       this.fx.floatText(W / 2, BOOK.HY + BOOK.D - 110, 'ALLE KLAREDE DEN!', C.mint, 60);

@@ -294,7 +294,7 @@ export class SpejldansScene extends MinigameScene {
     // Start musikken forfra, så pilene ligger på slagene.
     audio.music(null);
     audio.music('game');
-    this.say('Dans! Og hold takten med din makker!');
+    this.say('danceStart');
   }
 
   protected play(dt: number): void {
@@ -363,7 +363,7 @@ export class SpejldansScene extends MinigameScene {
     }
     if (winner !== null) {
       this.fx.confetti(1500);
-      this.say('Sikke et dansepar!');
+      this.say('danceCouple');
     }
     return this.rankByTeam(winner);
   }
@@ -489,7 +489,7 @@ export class SpejldansScene extends MinigameScene {
       this.sfx('coin', { volume: 0.45, pan: this.panFor(team.cx) });
       for (const d of team.dancers) d.blok.hop(50, 180);
       this.lightFloor(team.idx);
-      if (team.syncs % 8 === 0) this.say(this.rng() < 0.5 ? 'Perfekt spejlbillede!' : 'De danser som én!');
+      if (team.syncs % 8 === 0) this.say('danceSync');
     }
   }
 

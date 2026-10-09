@@ -482,7 +482,7 @@ export class FiskesoenScene extends RitualScene {
       });
     }
     this.bite(w);
-    this.say('Der er bid! …eller er der?', true);
+    this.say('fishBiteMaybe', true);
     await wait(this, 450);
     this.reel(w, 800);
     w.line = 'water';
@@ -505,7 +505,7 @@ export class FiskesoenScene extends RitualScene {
     });
     shout(this, 'EN STØVLE?!', { color: C.tomato, size: 150, y: 210, hold: 1100 });
     this.sfx('lose');
-    this.say('En støvle! Det lugter af kaos!', true);
+    this.say('fishBoot', true);
     w.blok.sad();
     for (const o of this.anglers) if (o !== w) o.blok.cheer();
     this.tweens.add({ targets: boot, angle: { from: -16, to: 16 }, duration: 70, yoyo: true, repeat: 7 });

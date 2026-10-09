@@ -317,7 +317,7 @@ export class FiskeScene extends MinigameScene {
   // ---------------------------------------------------------------------------
 
   protected onStart(): void {
-    this.say('Katten er sulten! Svøm for livet!');
+    this.say('catHungry');
     this.sfx('splash');
   }
 
@@ -337,7 +337,7 @@ export class FiskeScene extends MinigameScene {
 
   protected timeUp(): number[][] {
     const left = this.fish.filter((f) => !f.caught).length;
-    if (left) this.say('Fiskene slap væk!', true);
+    if (left) this.say('fishEscaped', true);
     return this.rankByTeam(left ? 1 : 0);
   }
 
@@ -403,7 +403,7 @@ export class FiskeScene extends MinigameScene {
     this.fx.shake(0.012, 260);
     this.fx.stars(f.x, f.y, N.sun, 10);
     this.fx.floatText(f.x, f.y - 80, 'BID!', C.sun, 72);
-    this.say(this.caughtCount === 3 ? 'Spanden er fuld!' : this.caughtCount === 2 ? 'Kun én fisk tilbage!' : 'Fisken bed på!', this.caughtCount > 1);
+    this.say(this.caughtCount === 3 ? 'bucketFull' : this.caughtCount === 2 ? 'oneFishLeft' : 'fishOnHook', this.caughtCount > 1);
     const tip = this.rodTip();
     const hx0 = this.hook.x;
     const proxy = { x: this.hook.x, y: this.hook.y };

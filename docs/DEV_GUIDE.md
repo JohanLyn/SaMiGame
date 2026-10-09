@@ -7,7 +7,7 @@ Kvalitetskravet er højt: det skal ligne et færdigt konsolspil, ikke en prototy
 ```
 apps/host/src/
   kit/            theme (farver, W=1920 H=1080), svg (SVG→tekstur), fx (juice), ui (tekst/paneler/timer),
-                  scenery (baggrunde, skyer, palmer, ø, sol), textures (partikler), audio (sfx, musik, fortæller)
+                  scenery (baggrunde, skyer, palmer, ø, sol), textures (partikler), audio (sfx, musik, speaker)
   objects/        Blok (animeret spillerfigur), ScoreCard
   flow/           Director (scene-flow), PlayScene (base med input/bots), types (MinigameDef, RitualDef ...)
   minigames/      _framework/MinigameScene.ts + én mappe pr. minigame (auto-registreres)
@@ -41,7 +41,7 @@ packages/shared/  protokol, controller-layouts (layouts.ts), avatar-system
   `this.team(i)`, `this.solo` (1v3). Roller: `'ffa' | 'duo' | 'solo' | 'trio'`.
 - Kaos-kort: `this.chaos.size` (håndteres af spawnBlok), `this.chaos.gravity` (gang med i tyngdekraft), `mirror` (håndteres automatisk).
 - Juice: `this.fx.shake/flash/punch/hitstop/burst/dust/stars/confetti/floatText/banner/squash/popIn/breathe/vignette`.
-- Lyd: `this.sfx('pop' | 'bonk' | 'splash' | 'fart' | ... )` (se `kit/audio/sfx.ts`), `this.say('...')` (fortæller, dansk).
+- Lyd: `this.sfx('pop' | 'bonk' | 'splash' | 'fart' | ... )` (se `kit/audio/sfx.ts`), `this.say('<nøgle>')` (engelsk speaker – nøglerne står i `kit/audio/voiceLines.ts`, se "Speakeren" nedenfor).
 - Telefon: `def.layout(ctx)` sætter controlleren ved start; ændr undervejs med `this.setLayout(slot, layout)`;
   `this.vibrate(slot, ms)`.
 - Statistik til bonuspriser: `this.stat(slot, 'falls' | 'hits' | 'bonks' | 'jumps' | 'screams')`. ('taps', 'distance' tælles automatisk.)
@@ -82,3 +82,15 @@ Tween-uret og `time.delayedCall` kan løbe fra hinanden, når spillet hakker (me
 Kæd derfor forløb sammen med tweens' `onComplete`/promises i stedet for at stole på at faste `delayedCall`-tider passer
 med animationerne. Fælles ritual-hjælpere (overskrift, råb, lokkemad, "NÆSTE SPIL"-afsløring) ligger i
 `rituals/_framework/ritualKit.ts`.
+
+## Speakeren (engelsk announcer)
+Replikkerne står i `apps/host/src/kit/audio/voiceLines.ts` (nøgle → stil + en eller flere varianter). Lydklippene i
+`kit/audio/voice/` er genereret – en ny eller ændret replik kræver, at klippene laves igen:
+
+1. Hent Piper (`piper_linux_x86_64.tar.gz` fra github.com/rhasspy/piper, release `2023.11.14-2`) og stemmen
+   `voice-en-us-libritts-high.tar.gz` (release `v0.0.2`) og pak dem ud.
+2. `npx tsx scripts/voice/build-voice.ts --piper <piper-mappe> --model <mappe>/en-us-libritts-high.onnx --speaker 90 --only <nøgle1>,<nøgle2>`
+   (uden `--only` laves alle klip forfra). `--speaker` vælger taleren (0–903); vi bruger 90.
+
+Stilene (`hype`/`call`/`aside`) styrer tempo, tonehøjde, rumklang og – ved afspilning – bom/whoosh og hvor højt.
+Replikker kan ikke indeholde spillernavne (de er forudindspillede), så brug generiske kald.

@@ -165,7 +165,7 @@ export class PrutteScene extends MinigameScene {
   }
 
   protected onStart(): void {
-    this.say('Én af pumperne er en prutte-bombe! Held og lykke!', true);
+    this.say('fartStart', true);
     this.turn = Math.floor(this.rng() * this.alive().length);
     void this.startRound();
   }
@@ -256,7 +256,7 @@ export class PrutteScene extends MinigameScene {
     this.phase = 'intro';
     if (this.round > 1) {
       this.layoutPumps(n, true);
-      this.say(this.round === 2 ? 'Færre pumper nu!' : 'Sidste runde! Hjælp!');
+      this.say(this.round === 2 ? 'fewerPumps' : 'lastRound');
     }
     this.roundText.setText(`RUNDE ${this.round}  ·  ${n} PUMPER  ·  1 ER EN BOMBE`).setAlpha(1).setScale(0);
     this.tweens.add({ targets: this.roundText, scale: 1, duration: 350, ease: 'Back.easeOut' });
@@ -409,7 +409,7 @@ export class PrutteScene extends MinigameScene {
     c.blok.cheer();
     this.time.delayedCall(900, () => c.blok.idle());
     this.tweens.add({ targets: [pump.body, pump.num, pump.sign], alpha: 0.45, duration: 300 });
-    if (this.rng() < 0.4) this.say(['Puha!', 'Den holdt!', 'Hjertet sidder i halsen!'][Math.floor(this.rng() * 3)]);
+    if (this.rng() < 0.4) this.say('phew');
   }
 
   private async blast(c: Contestant, pump: Pump): Promise<void> {
@@ -435,7 +435,7 @@ export class PrutteScene extends MinigameScene {
     this.fx.burst(pump.x, pump.y - 120, { texture: TEX.star, color: [N.sun, 0x9dff6a], count: 14, speed: 900, gravity: 800 });
     this.vibrate(c.slot, 500);
     this.stat(c.slot, 'falls');
-    this.say('KÆMPE-PRUT! Farvel og tak!', true);
+    this.say('megaFart', true);
     this.cushionMood = 'flat';
     this.inflate = 0;
     title(this, W / 2, CUSHION.y - 60, 'PRRRUUUUT!', 150, { color: '#9dff6a' })

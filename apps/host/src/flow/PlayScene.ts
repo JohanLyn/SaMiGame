@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { NEUTRAL_INPUT, type ControllerInput, type ControllerLayout } from '@samigame/shared';
 import { NO_CHAOS, type ChaosModifiers } from '../game/chaos';
 import { createRng, type Rng } from '../game/rng';
-import { audio, type LineCategory, type SfxName } from '../kit/audio';
+import { audio, type VoiceKey, type SfxName } from '../kit/audio';
 import { Fx } from '../kit/fx';
 import { DEV, net } from '../net';
 import { Blok } from '../objects/Blok';
@@ -181,7 +181,7 @@ export abstract class PlayScene extends Phaser.Scene {
     return Math.max(-0.8, Math.min(0.8, (x / this.scale.width) * 2 - 1));
   }
 
-  say(line: LineCategory | string, force = false): void {
+  say(line: VoiceKey, force = false): void {
     audio.say(line, force);
   }
 

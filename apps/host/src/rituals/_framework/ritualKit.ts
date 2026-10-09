@@ -3,6 +3,7 @@ import { shade, type ControllerLayout } from '@samigame/shared';
 import { shuffle } from '../../game/rng';
 import type { MinigameKind } from '../../game/types';
 import type { PlayerView } from '../../flow/types';
+import type { VoiceKey } from '../../kit/audio';
 import { sunburst } from '../../kit/scenery';
 import { addSvg, ink, linear, radial, shine, svgDoc } from '../../kit/svg';
 import { TEX } from '../../kit/textures';
@@ -283,7 +284,7 @@ export async function revealPick(
   scene.fx.burst(cx, cy - 170, { texture: TEX.star, color: [N.sun, 0xffffff, N.bubblegum], count: 26, speed: 950, scale: 0.75, depth: D + 10 });
   scene.sfx('explosion', { volume: 0.35 });
   scene.sfx('fanfare');
-  scene.say(`Næste spil: ${pick.title}!`, true);
+  scene.say(`next_${pick.id}` as VoiceKey, true);
   scene.tweens.add({ targets: ribbon, scale: 1, duration: 420, ease: 'Back.easeOut' });
   scene.tweens.add({ targets: ribbon, angle: { from: -2, to: 2 }, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   icon.setScale(0.2);

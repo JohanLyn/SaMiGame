@@ -238,7 +238,7 @@ export class VulkanScene extends RitualScene {
       }
       if (this.tickleTime >= MAX_TICKLE && this.total < TARGET) {
         this.total = TARGET;
-        this.say('Den kan ikke holde den inde!', true);
+        this.say('volcanoHold', true);
       }
       this.updateFace(dt);
       if (this.total >= TARGET) {
@@ -331,7 +331,7 @@ export class VulkanScene extends RitualScene {
   private async sneezeSequence(): Promise<void> {
     this.total = TARGET;
     this.header.setHint('Åh nej… den skal NYSE!', C.sun);
-    this.say('Pas på! Den nyser!', true);
+    this.say('volcanoSneeze', true);
     for (const t of this.ticklers) t.blok.sad();
     // Indånding
     this.aah?.setText('AAAAAAH…');

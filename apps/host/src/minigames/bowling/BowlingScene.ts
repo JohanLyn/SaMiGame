@@ -245,7 +245,7 @@ export class BowlingScene extends MinigameScene {
   // ---------------------------------------------------------------------------
 
   protected onStart(): void {
-    this.say('Strike-tid!');
+    this.say('strikeTime');
     this.startThrow();
   }
 
@@ -347,7 +347,7 @@ export class BowlingScene extends MinigameScene {
     this.setPrompt(p > 0.85 ? 'KÆMPE KAST!' : p < 0.4 ? 'Lidt slapt…' : 'Rul, kødbolle!', p > 0.85 ? C.sun : C.cream);
     this.time.delayedCall(900, () => this.phase === 'roll' && this.setPrompt(''));
     this.setLayout(this.solo.slot, { kind: 'stick', a: 'KURVE ←→', hint: 'Styr kødbollen med pinden!' });
-    if (p > 0.85) this.say('Den har fart på!');
+    if (p > 0.85) this.say('bowlFast');
   }
 
   private updateRoll(dt: number): void {
@@ -363,7 +363,7 @@ export class BowlingScene extends MinigameScene {
         this.sfx('wrong');
         this.sfx('bonk', { pitch: 0.6 });
         this.setPrompt('RENDESTEN!', C.tomato);
-        this.say('Rendesten! Øv!');
+        this.say('gutter');
         this.fx.floatText(projX(b.u, b.v), projY(b.v) - 120, 'PLUMP!', C.tomato, 56);
       }
     }
@@ -447,7 +447,7 @@ export class BowlingScene extends MinigameScene {
     }
     this.updateHud();
     if (first) this.setLayout(p.player.slot, { kind: 'stick', a: 'HOP', hint: 'Du er ramt – men bliv på banen og driil eneren!' });
-    if (this.pins.every((q) => q.hit)) this.say('Alle tre er ramt!', true);
+    if (this.pins.every((q) => q.hit)) this.say('allThreeDown', true);
     else this.say('ouch');
   }
 
@@ -489,13 +489,13 @@ export class BowlingScene extends MinigameScene {
       this.phase = 'done';
       this.setPrompt('');
       if (allHit) {
-        this.say('Eneren væltede alle keglerne!', true);
+        this.say('soloStrike', true);
         this.bowler.dance();
         this.fx.confetti(1500);
         await this.fx.banner('ALLE RAMT!', { color: C.sun, size: 150, hold: 900 });
         this.finish(this.rankByTeam(0));
       } else {
-        this.say('Keglerne holdt stand!', true);
+        this.say('pinsHold', true);
         this.bowler.sad();
         this.pins.filter((p) => !p.hit).forEach((p) => p.blok.dance());
         this.sfx('cheer');

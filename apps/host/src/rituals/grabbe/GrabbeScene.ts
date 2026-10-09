@@ -246,7 +246,7 @@ export class GrabbeScene extends RitualScene {
     this.timer = new TimerHud(this, W - 120, 120, CONTROL_TIME);
     shout(this, 'GRIB!', { color: C.sun, size: 200, hold: 450 });
     this.sfx('go');
-    this.say(`Kom så, ${this.ctrl.name}!`);
+    this.say('clawGo');
   }
 
   protected play(dt: number): void {
@@ -337,7 +337,7 @@ export class GrabbeScene extends RitualScene {
     target.img.setDepth(31);
     this.capsules = this.capsules.filter((c) => c !== target);
     for (const f of this.fans) f.blok.cheer();
-    this.say('Den sidder fast!');
+    this.say('clawStuck');
 
     // Op – og den glider næsten ud!
     await this.tweenClaw({ y: (CLAW_REST + target.img.y - HOLD) / 2 }, 600);

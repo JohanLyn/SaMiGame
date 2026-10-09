@@ -280,7 +280,7 @@ export class SpaghettiScene extends MinigameScene {
   }
 
   protected onStart(): void {
-    this.say('Træk i spaghettien – og hold takten!');
+    this.say('spaghettiStart');
     this.sfx('squeak', { pitch: 0.6 });
   }
 
@@ -297,7 +297,7 @@ export class SpaghettiScene extends MinigameScene {
     const mult = 1 + progress * 1.6;
     if (progress > 0.45 && !this.slipShown && !this.ending) {
       this.slipShown = true;
-      this.say('Sovsen gør spaghettien glat!');
+      this.say('slippery');
       const t = title(this, W / 2, 560, 'SPAGHETTIEN BLIVER GLAT!', 58, { color: C.sun }).setDepth(7500).setScale(0).setAngle(-4);
       this.tweens.add({ targets: t, scale: 1, duration: 300, ease: 'Back.easeOut' });
       this.tweens.add({ targets: t, alpha: 0, y: 520, delay: 1600, duration: 400, onComplete: () => t.destroy() });
@@ -411,7 +411,7 @@ export class SpaghettiScene extends MinigameScene {
     this.fx.burst(x, GEO.floor - 120, { texture: TEX.star, color: [N.sun, Phaser.Display.Color.HexStringToColor(TEAM_HEX[team.idx]).color], count: 10, speed: 420, scale: 0.5, gravity: 500 });
     this.sfx('coin', { volume: 0.5, pan: this.panFor(x) });
     this.cameras.main.shake(80, 0.002);
-    if (team.combo >= 6 && team.combo % 6 === 0) this.say(this.rng() < 0.5 ? 'Bellissimo! Perfekt i takt!' : 'Mamma mia, sikke et samarbejde!');
+    if (team.combo >= 6 && team.combo % 6 === 0) this.say('bellissimo');
   }
 
   private updatePullers(dt: number): void {
@@ -446,7 +446,7 @@ export class SpaghettiScene extends MinigameScene {
       }
       if (danger > 0.75 && !this.warned[team.idx] && !this.ending) {
         this.warned[team.idx] = true;
-        this.say('Uha! Sovsen er varm!');
+        this.say('hotSauce');
         this.sfx('scream', { volume: 0.6, pan: this.panFor(team.pullers[0].blok.x) });
         this.stat(team.pullers[0].p.slot, 'screams');
       }
@@ -591,7 +591,7 @@ export class SpaghettiScene extends MinigameScene {
     this.beatRing.clear();
     if (winner === null) {
       for (const team of this.teamsState) for (const pl of team.pullers) pl.blok.sad();
-      this.say('Uafgjort! Spaghettien knækkede ikke engang.');
+      this.say('spaghettiDraw');
       if (!fromTimer) this.time.delayedCall(1200, () => this.finish(this.rankByTeam(null)));
       return;
     }
@@ -602,7 +602,7 @@ export class SpaghettiScene extends MinigameScene {
       pl.blok.cheer();
       this.tweens.add({ targets: pl.blok, y: GEO.floor - 30, duration: 220, yoyo: true, repeat: 4, ease: 'Quad.easeOut' });
     }
-    this.say('PLASK! Lige ned i sovsen!');
+    this.say('sauceSplash');
     losers.pullers.forEach((pl, i) => this.dunk(pl, losers.side, i));
     this.time.delayedCall(500, () => this.fx.confetti(1600));
     this.sfx('cheer', { delay: 0.6 });

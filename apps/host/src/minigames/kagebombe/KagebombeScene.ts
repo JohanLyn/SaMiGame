@@ -226,7 +226,7 @@ export class KagebombeScene extends MinigameScene {
   }
 
   protected onStart(): void {
-    this.say('Klip den rigtige ledning – ellers bliver det flødeskum!');
+    this.say('cakeStart');
     for (const st of this.stations) {
       if (st.state === 'idle' && st.cakeC) this.arm(st);
       else st.state = 'drop';
@@ -479,7 +479,7 @@ export class KagebombeScene extends MinigameScene {
     if (st.score >= GOAL) {
       this.gameOver = true;
       st.state = 'won';
-      this.say('Tre kager reddet! Sikke et team!');
+      this.say('threeCakes');
       this.fx.confetti(1800);
       const other = this.stations.find((o) => o !== st);
       if (other) {
@@ -489,7 +489,7 @@ export class KagebombeScene extends MinigameScene {
       this.time.delayedCall(1600, () => this.finish(this.rankByTeam(st.team)));
       return;
     }
-    if (this.rng() < 0.5) this.say(this.rng() < 0.5 ? 'Puha! Kagen er reddet!' : 'Flot klip!');
+    if (this.rng() < 0.5) this.say('cakeSaved');
     this.time.delayedCall(1300, () => {
       if (this.gameOver) return;
       st.readerBlok.idle();
@@ -571,7 +571,7 @@ export class KagebombeScene extends MinigameScene {
       const face = this.add.image(b.x, b.y - 150, 'kage-splat').setScale(0.55).setDepth(460);
       this.tweens.add({ targets: face, y: face.y + 30, alpha: 0, delay: PENALTY * 1000 - 600, duration: 600, onComplete: () => face.destroy() });
     }
-    this.say(this.rng() < 0.5 ? 'SPLAT! Flødeskum i hovedet!' : 'Bum! Den kage var vist ikke klar.');
+    this.say('cakeBoom');
     this.time.delayedCall(450, () => {
       if (this.gameOver) return;
       st.state = 'penalty';

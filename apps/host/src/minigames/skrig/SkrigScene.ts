@@ -125,7 +125,7 @@ export class SkrigScene extends MinigameScene {
   protected onStart(): void {
     this.clock = new TimerHud(this, W / 2, 86, DURATION);
     this.clock.set(DURATION);
-    this.say('SKRIG! Pust ballonen op – men ikke for meget!', true);
+    this.say('screamStart', true);
   }
 
   // ---------------------------------------------------------------------------
@@ -231,7 +231,7 @@ export class SkrigScene extends MinigameScene {
       if (this.left <= 5 && Math.ceil(this.left) !== Math.ceil(this.left + dt) && this.left > 0) this.sfx('tick');
       if (!this.saidHalf && this.left < 10) {
         this.saidHalf = true;
-        this.say('Ti sekunder! Skrig højere!');
+        this.say('screamLouder');
       }
       for (const s of this.st) this.inflate(s, dt);
       if (this.left <= 0) this.reveal();
@@ -308,7 +308,7 @@ export class SkrigScene extends MinigameScene {
     this.tweens.add({ targets: scrap, angle: { from: -20, to: 20 }, duration: 300, yoyo: true, repeat: -1 });
     this.stat(s.slot, 'falls');
     this.vibrate(s.slot, 400);
-    if (this.popOrder.length === 1) this.say('BANG! Den sprang!');
+    if (this.popOrder.length === 1) this.say('bang');
     else this.say('ouch');
   }
 
@@ -364,7 +364,7 @@ export class SkrigScene extends MinigameScene {
     }
     this.sfx('whoosh');
     this.sfx('ding', { delay: 0.1 });
-    this.say('Stop! Lad os måle ballonerne!', true);
+    this.say('measure', true);
     void this.fx.banner('STOP! MÅLEBÅNDET FREM!', { color: C.sun, size: 120, hold: 900 }).then(() => this.measure());
   }
 
@@ -435,9 +435,9 @@ export class SkrigScene extends MinigameScene {
       }
       this.fx.confetti(1500);
       this.sfx('fanfare');
-      this.say('Klap for den største ballon!', true);
+      this.say('biggestBalloon', true);
     } else {
-      this.say('Alle ballonerne sprang! Sikke et kaos!', true);
+      this.say('allPopped', true);
       this.sfx('lose');
     }
     for (const s of this.st) if (s.popped) s.blok.sad();

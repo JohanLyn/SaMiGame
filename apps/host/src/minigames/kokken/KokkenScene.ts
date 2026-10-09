@@ -175,7 +175,7 @@ export class KokkenScene extends MinigameScene {
   }
 
   protected onStart(): void {
-    this.say('Kokken siger: tryk på den rigtige!');
+    this.say('chefStart');
     this.nextRound();
   }
 
@@ -354,7 +354,7 @@ export class KokkenScene extends MinigameScene {
     if (this.round > 1 && (this.round - 1) % 5 === 0) {
       this.fx.floatText(CHEF_X, 160, 'HURTIGERE!', C.sun, 70);
       this.sfx('powerup');
-      this.say('Schnell, schnell! Hurtigere!');
+      this.say('faster');
       this.tweens.add({ targets: this.tempoPips[pips - 1], scale: { from: 1.6, to: 0.7 }, duration: 400, ease: 'Back.easeOut' });
     }
     this.showBubble('Kokken siger…', C.ink, 52);
@@ -466,7 +466,7 @@ export class KokkenScene extends MinigameScene {
       this.setFace('laugh', 1.2);
       this.showBubble('ALLE?! IGEN!', C.grape, 70);
       this.sfx('lose');
-      this.say('Alle sammen? Vi tager den igen!');
+      this.say('again');
       for (const c of failed) {
         this.setIcon(c, 'kok-bad');
         c.blok.bonk();
@@ -491,10 +491,10 @@ export class KokkenScene extends MinigameScene {
     this.setFace(this.shown === 'polse' ? 'laugh' : 'angry', 1.4);
     if (this.shown === 'polse') {
       this.showBubble('HAHA! PØLSE!', C.bubblegum, 70);
-      this.say('Ha! Det var jo en pølse!');
+      this.say('sausage');
     } else {
       this.showBubble(failed.length > 1 ? 'SPLAT! SPLAT!' : 'SPLAT!', this.shown === 'ketchup' ? C.tomato : C.sun, 80);
-      this.say(failed.length > 1 ? 'Dobbelt splat!' : 'Splat! Du er ude!');
+      this.say(failed.length > 1 ? 'doubleSplat' : 'splatOut');
     }
     failed.forEach((c, i) => this.time.delayedCall(i * 260, () => this.splat(c)));
     this.judgeWait = 0.9 + failed.length * 0.35;
@@ -510,7 +510,7 @@ export class KokkenScene extends MinigameScene {
       this.showBubble('Wunderbar!', C.mint, 70);
       this.fx.confetti(1800);
       this.sfx('cheer');
-      this.say('Kokken er imponeret!');
+      this.say('chefImpressed');
     } else if (survivors.length > 1) {
       this.setFace('laugh');
       this.showBubble('Alle vinder!', C.mint, 70);

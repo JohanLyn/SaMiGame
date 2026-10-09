@@ -179,7 +179,7 @@ export class SjippeScene extends MinigameScene {
   }
 
   protected onStart(): void {
-    this.say('Hop over ålen!');
+    this.say('eelStart');
     this.omega = this.baseOmega();
   }
 
@@ -357,7 +357,7 @@ export class SjippeScene extends MinigameScene {
       this.hiccupTime = 0.6 / (this.baseOmega() / (Math.PI * 2)) / 1.6;
       this.fx.floatText(this.head.x - 60, this.head.y - 90, 'SPURT!', C.tomato, 56);
       this.sfx('powerup', { pitch: 1.3 });
-      this.say('Spurt!');
+      this.say('sprint');
     } else if (roll < 0.62) {
       this.hiccup = 'pause';
       this.hiccupTime = 0.5 + this.rng() * 0.45;
@@ -379,7 +379,7 @@ export class SjippeScene extends MinigameScene {
     this.sfx('squeak', { pitch: 0.7 });
     this.sfx('boing', { delay: 0.05, volume: 0.6 });
     this.fx.shake(0.004, 120);
-    this.say('Hik!');
+    this.say('hiccup');
   }
 
   private onPass(): void {
@@ -416,7 +416,7 @@ export class SjippeScene extends MinigameScene {
         this.trip(j);
       }
       for (const c of this.crocs) c.laugh = 1.2;
-      if (this.alive.length > 1) this.say(hit.length > 1 ? 'Dobbelt-smæk!' : 'Smæk! Ud i sumpen!');
+      if (this.alive.length > 1) this.say(hit.length > 1 ? 'doubleSplat' : 'eelHit');
     }
     this.planBots();
   }
@@ -432,7 +432,7 @@ export class SjippeScene extends MinigameScene {
     if (survivors.length === 1) {
       this.fx.confetti(1800);
       this.sfx('cheer');
-      this.say('Sjippe-mester!');
+      this.say('eelChamp');
     }
     const groups = [...this.outGroups].reverse();
     const ranking = survivors.length ? [survivors.map((j) => j.slot), ...groups] : groups;

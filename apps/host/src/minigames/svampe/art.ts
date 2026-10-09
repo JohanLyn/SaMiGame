@@ -1,5 +1,6 @@
 import { shade } from '@samigame/shared';
 import { ink, linear, radial, shine, svgDoc } from '../../kit/svg';
+import type { VoiceKey } from '../../kit/audio';
 
 /**
  * Al grafik til "Svampe-Roulette": en kæmpe gryde svampesuppe i en skov om natten,
@@ -21,14 +22,16 @@ export interface ShroomColor {
   id: string;
   name: string;
   hex: string;
+  /** Speakerens replik for farven. */
+  voice: VoiceKey;
 }
 
 export const SHROOM_COLORS: ShroomColor[] = [
-  { id: 'rod', name: 'RØD', hex: '#ff4b4b' },
-  { id: 'bla', name: 'BLÅ', hex: '#3d9bff' },
-  { id: 'gron', name: 'GRØN', hex: '#5fd34a' },
-  { id: 'lilla', name: 'LILLA', hex: '#a35cff' },
-  { id: 'orange', name: 'ORANGE', hex: '#ff9a2b' },
+  { id: 'rod', name: 'RØD', hex: '#ff4b4b', voice: 'red' },
+  { id: 'bla', name: 'BLÅ', hex: '#3d9bff', voice: 'blue' },
+  { id: 'gron', name: 'GRØN', hex: '#5fd34a', voice: 'green' },
+  { id: 'lilla', name: 'LILLA', hex: '#a35cff', voice: 'purple' },
+  { id: 'orange', name: 'ORANGE', hex: '#ff9a2b', voice: 'orange' },
 ];
 
 // ---------------------------------------------------------------------------

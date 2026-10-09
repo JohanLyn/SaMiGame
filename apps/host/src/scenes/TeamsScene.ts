@@ -40,7 +40,7 @@ export class TeamsScene extends Phaser.Scene {
     partyBackdrop(this, solo ? C.tomato : C.grape);
     fx.vignette(0.85);
     audio.music('tense');
-    audio.say('teams');
+    audio.say(solo ? 'oneVsThree' : 'twoVsTwo', true);
 
     const header = title(this, W / 2, 110, solo ? '1 MOD 3!' : '2 MOD 2!', 130, { color: C.sun });
     fx.popIn(header);

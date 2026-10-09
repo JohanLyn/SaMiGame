@@ -243,7 +243,7 @@ export class SelfieScene extends MinigameScene {
   protected onStart(): void {
     this.clock = new TimerHud(this, W / 2, 86, DURATION);
     this.clock.set(DURATION);
-    this.say(`Kopiér ${this.sitter.name.toLowerCase()}! Træk i ansigtet!`, true);
+    this.say('selfieStart', true);
     this.sfx('powerup');
   }
 
@@ -395,11 +395,11 @@ export class SelfieScene extends MinigameScene {
       if (this.left <= 5 && Math.ceil(this.left) !== Math.ceil(this.left + dt) && this.left > 0) this.sfx('tick');
       if (!this.saidHalf && this.left < DURATION / 2) {
         this.saidHalf = true;
-        this.say('Halvvejs! Mere sur! MERE SUR!');
+        this.say('grumpier');
       }
       if (!this.saidTen && this.left < 10) {
         this.saidTen = true;
-        this.say('Ti sekunder! Skalpellerne gløder!');
+        this.say('scalpels');
       }
       for (const d of this.docs) this.handleInput(d, dt);
       if (this.left <= 0) this.reveal();
@@ -583,7 +583,7 @@ export class SelfieScene extends MinigameScene {
     }
     this.sfx('whoosh');
     this.sfx('ding', { delay: 0.1 });
-    this.say('Skalpellerne ned! Lad os se ligheden!', true);
+    this.say('scalpelsDown', true);
     void this.fx.banner('SKALPELLEN NED!', { color: C.sun, size: 150, hold: 900 }).then(() => this.revealNext(0));
   }
 
@@ -660,7 +660,7 @@ export class SelfieScene extends MinigameScene {
     this.sfx('fanfare');
     this.fx.confetti(1600);
     this.fx.flash(0xffffff, 160, 0.4);
-    this.say(best.score >= 85 ? 'Det er jo en tvilling!' : 'Hertugen er... nogenlunde tilfreds.', true);
+    this.say(best.score >= 85 ? 'twin' : 'meh', true);
     // Portrættet blinker anerkendende
     this.portraitBlink = -0.01;
     this.time.delayedCall(1800, () => this.finish(this.rankByScore(this.players.map((p) => this.docs.find((d) => d.slot === p.slot)?.score ?? 0))));

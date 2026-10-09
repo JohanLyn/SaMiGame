@@ -2,6 +2,7 @@ import '@fontsource/lilita-one/400.css';
 import '@fontsource/nunito/800.css';
 import '@fontsource/nunito/900.css';
 import Phaser from 'phaser';
+import { audio } from './kit/audio';
 import { Director } from './flow/Director';
 import { H, W } from './kit/theme';
 import { MINIGAMES } from './minigames';
@@ -51,4 +52,4 @@ game.registry.set('director', director);
 net.start();
 
 // Til fejlfinding, screenshots og end-to-end-tests.
-Object.assign(window, { __SAMI__: { net, game, director, minigames: MINIGAMES.map((m) => m.id), rituals: RITUALS.map((r) => r.id) } });
+Object.assign(window, { __SAMI__: { net, game, director, audio, minigames: MINIGAMES.map((m) => m.id), rituals: RITUALS.map((r) => r.id) } });

@@ -54,6 +54,10 @@ TV'et åbner `/`, telefonerne kommer til `/play/` via QR-koden.
 - **Docker:** `docker build -t sami-party . && docker run -p 3000:3000 sami-party`
 - **Render.com:** forbind GitHub-repoet og vælg "Blueprint" – `render.yaml` opretter en gratis web-service med HTTPS (så virker gyro og mikrofon også).
 
+## Kreditering
+
+Speakerens stemme er genereret med [Piper](https://github.com/rhasspy/piper) (MIT) og stemmen *en-us-libritts-high*, trænet på [LibriTTS](http://www.openslr.org/60/) (CC BY 4.0, Zen et al. 2019).
+
 ## Udvikling
 
 ```

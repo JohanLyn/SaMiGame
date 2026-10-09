@@ -392,7 +392,7 @@ export class BadekarScene extends MinigameScene {
   }
 
   protected onStart(): void {
-    this.say('Afsted ned ad bakken! Pas på svingene!');
+    this.say('bobsledStart');
     for (const s of this.sleds) {
       s.v = 250;
       s.boostBlok.cheer();
@@ -499,7 +499,7 @@ export class BadekarScene extends MinigameScene {
           this.stat(s.steer.slot, 'bonks');
           s.steerBlok.bonk();
           s.boostBlok.bonk();
-          if (this.rng() < 0.25) this.say(this.rng() < 0.5 ? 'Bump! Ind i snevæggen!' : 'Hov, banen svinger altså!');
+          if (this.rng() < 0.25) this.say('bobsledWall');
         } else if (this.rng() < dt * 12) {
           this.fx.burst(LANE_X[s.lane] + LCX + this.f(s.d) + side * (LAT_MAX + 50), TUB_Y + 10, { texture: TEX.puff, color: 0xffffff, count: 3, speed: 260, scale: 0.5, gravity: 400, lifespan: 400, depth: 5100 });
         }
@@ -611,7 +611,7 @@ export class BadekarScene extends MinigameScene {
     this.tweens.add({ targets: inst.obj, x: inst.obj.x + side * 500, angle: side * 540, alpha: 0, duration: 700, ease: 'Quad.easeOut' });
     inst.obj.setData('flying', true);
     this.tweens.add({ targets: s.tubC, angle: { from: 0, to: 360 }, duration: 650, ease: 'Cubic.easeOut' });
-    if (this.rng() < 0.6) this.say(duck ? 'Den stakkels badeand!' : 'Klonk! Lige ind i isklumpen!');
+    if (this.rng() < 0.6) this.say(duck ? 'bobsledDuck' : 'bobsledIce');
   }
 
   private cross(s: Sled): void {
@@ -623,7 +623,7 @@ export class BadekarScene extends MinigameScene {
     if (this.winner === null) {
       this.winner = s.team;
       this.sfx('fanfare');
-      this.say('Badekarret er i mål!');
+      this.say('bobsledFinish');
       this.fx.confetti(1600);
       const t = title(this, x, 420, 'I MÅL!', 140, { color: C.sun }).setDepth(7600).setScale(0).setAngle(-6);
       this.tweens.add({ targets: t, scale: 1, duration: 400, ease: 'Back.easeOut' });

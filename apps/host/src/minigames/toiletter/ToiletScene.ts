@@ -305,7 +305,7 @@ export class ToiletScene extends MinigameScene {
   // Forløb
 
   protected onStart(): void {
-    this.say('Gem jer i toiletterne!');
+    this.say('hide');
     void this.runGame();
   }
 
@@ -340,14 +340,14 @@ export class ToiletScene extends MinigameScene {
     for (const p of this.players) this.setLayout(p.slot, { kind: 'wait', title: soloWins === (p.role === 'solo') ? 'I vandt!' : 'Øv!', emoji: soloWins === (p.role === 'solo') ? '🏆' : '🧻' });
     if (soloWins) {
       this.seeker.dance();
-      this.say('Eneren fandt dem alle sammen!', true);
+      this.say('seekerWins', true);
       this.fx.confetti(1800);
       this.sfx('win');
       await this.fx.banner('ALLE FANGET!', { color: C.sun, size: 140, hold: 1200 });
     } else {
       this.seeker.sad();
       this.alive().forEach((h) => h.blok.dance());
-      this.say('Trioen var for snedig!', true);
+      this.say('trioSneaky', true);
       this.sfx('cheer');
       await this.fx.banner('TRIOEN SLAP VÆK!', { color: C.mint, size: 120, hold: 1200 });
     }
@@ -374,7 +374,7 @@ export class ToiletScene extends MinigameScene {
     this.seeker.setFacing(-1);
     this.soloBubble.setVisible(true).setPosition(this.seeker.x + 70, this.seeker.y - 300);
     this.tweens.add({ targets: this.soloBubble, scale: { from: 0, to: 1 }, duration: 300, ease: 'Back.easeOut' });
-    this.say('Trioen: vælg et toilet i hemmelighed!');
+    this.say('trioPick');
     this.updateHud();
     return new Promise((resolve) => (this.phaseDone = () => resolve()));
   }
@@ -425,7 +425,7 @@ export class ToiletScene extends MinigameScene {
     this.seeker.setFacing(1);
     this.tweens.add({ targets: this.dark, fillAlpha: 0, duration: 450 });
     this.sfx('ding');
-    this.say('Find dem!');
+    this.say('findThem');
     for (const h of this.alive()) this.setLayout(h.player.slot, { kind: 'wait', title: `Gemt i nr. ${h.choice + 1}`, message: 'Hold vejret… eneren leder!', emoji: '🤫' });
     await this.wait(500);
   }
@@ -529,7 +529,7 @@ export class ToiletScene extends MinigameScene {
     const big = title(this, x, CABIN_BOTTOM - CABIN.h - 30, found.length > 1 ? `${found.length} FANGET!` : 'FANGET!', 96, { color: C.tomato }).setDepth(7600).setScale(0).setAngle(-6);
     this.tweens.add({ targets: big, scale: 1, duration: 360, ease: 'Back.easeOut' });
     this.seeker.cheer();
-    this.say(found.length > 1 ? 'Bingo! Flere på én gang!' : 'Bøh! Der var du!', true);
+    this.say(found.length > 1 ? 'foundMany' : 'foundOne', true);
     this.setPrompt(found.length > 1 ? 'DOBBELT-FANGST!' : 'FANGET!', found.map((h) => h.player.name).join(' + '));
     this.updateHud();
     await this.wait(1500);
@@ -583,7 +583,7 @@ export class ToiletScene extends MinigameScene {
       }
       this.time.delayedCall(700, () => this.tweens.add({ targets: duck, angle: { from: -10, to: 10 }, duration: 380, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }));
       this.setPrompt('En gummiand?!', 'Tomt toilet…');
-      this.say('Kvak! Det var bare en and!');
+      this.say('quack');
     } else if (gag === 'flies') {
       this.sfx('fart');
       this.sfx('sizzle', { volume: 0.8, pitch: 2 });
@@ -619,7 +619,7 @@ export class ToiletScene extends MinigameScene {
       this.fx.floatText(x, CABIN_BOTTOM - 340, 'BZZZZ!', C.mint, 70);
       this.fx.floatText(this.seeker.x, this.seeker.y - 250, 'Bvadr!', C.cream, 50);
       this.setPrompt('PYH! Fluer!', 'Tomt toilet…');
-      this.say('Fy for en stank!');
+      this.say('stink');
       this.tweens.add({ targets: this.seeker, x: this.seeker.x - 40, duration: 220, yoyo: true });
     } else {
       this.sfx('pop');
@@ -631,7 +631,7 @@ export class ToiletScene extends MinigameScene {
       this.tweens.add({ targets: roll, x: x + 190, angle: 540, duration: 900, ease: 'Quad.easeOut' });
       this.fx.floatText(x, CABIN_BOTTOM - 330, 'PAPIRLAVINE!', C.cream, 60);
       this.setPrompt('Kun toiletpapir!', 'Tomt toilet…');
-      this.say('Kun toiletpapir! Øv!');
+      this.say('toiletPaper');
     }
     this.sfx('wrong', { delay: 0.5 });
     await this.wait(1600);

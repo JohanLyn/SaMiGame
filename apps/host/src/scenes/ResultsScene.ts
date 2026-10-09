@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { audio } from '../kit/audio';
+import { audio, type VoiceKey } from '../kit/audio';
 import { Fx } from '../kit/fx';
 import { partyBackdrop } from '../kit/scenery';
 import { addSvg } from '../kit/svg';
@@ -10,6 +10,16 @@ import { ScoreCard, layoutRow } from '../objects/ScoreCard';
 import type { Director, ResultsData } from '../flow/Director';
 
 const PLACE_COLORS = [C.sun, '#d9dde8', '#e09a5a', '#8a93a8'];
+
+/** Sejre i træk for samme spiller (nulstilles når et nyt spil starter). */
+let streakSlot = -1;
+let streak = 0;
+const STREAKS: { voice: VoiceKey; text: string }[] = [
+  { voice: 'doubleWin', text: 'DOBBELT-SEJR!' },
+  { voice: 'tripleWin', text: 'TREDOBBELT-SEJR!' },
+  { voice: 'unstoppable', text: 'USTOPPELIG!' },
+  { voice: 'godlike', text: 'GUDEAGTIG!' },
+];
 
 /** Resultat: placeringer, point flyver ind på stillingen, og den førende får kronen. */
 export class ResultsScene extends Phaser.Scene {
@@ -87,15 +97,30 @@ export class ResultsScene extends Phaser.Scene {
     });
 
     const winners = result.ranking[0] ?? [];
+    if (before.every((b) => b === 0)) streakSlot = -1;
+    if (winners.length === 1 && players.length > 1) {
+      streak = winners[0] === streakSlot ? streak + 1 : 1;
+      streakSlot = winners[0];
+    } else {
+      streakSlot = -1;
+      streak = 0;
+    }
+    const streakCall = streak >= 2 ? STREAKS[Math.min(streak, 5) - 2] : null;
     this.time.delayedCall(900, () => {
       if (winners.length < players.length) {
         audio.sfx('win');
-        audio.say('win');
+        audio.say(streakCall?.voice ?? 'win', true);
+        if (streakCall) {
+          const s = title(this, xs[winners[0]], 186, streakCall.text, 40, { color: C.bubblegum }).setAngle(-6);
+          fx.popIn(s, 150);
+          this.tweens.add({ targets: s, scale: 1.1, duration: 300, yoyo: true, repeat: 3, delay: 600 });
+        }
         const names = winners.map((s) => players[s].name).join(' & ');
         label(this, W / 2, 390, `${names} vinder!`, 64, { color: C.sun });
         fx.burst(xs[winners[0]], 260, { texture: 'kit-star', color: [N.sun, 0xffffff], count: 20, speed: 600 });
       } else {
         body(this, W / 2, 390, 'Uafgjort!', 60, { stroke: 8 });
+        audio.say('draw', true);
       }
     });
 

@@ -15,5 +15,7 @@ export default defineConfig(async () => ({
   },
   build: {
     chunkSizeWarningLimit: 2500,
+    // Demoen er én selvstændig HTML-fil, så speakerens lydklip lægges direkte ind i koden.
+    assetsInlineLimit: process.env.VITE_DEMO ? (file: string) => (file.endsWith('.mp3') ? true : undefined) : undefined,
   },
 }));

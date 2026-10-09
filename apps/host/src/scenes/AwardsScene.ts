@@ -608,7 +608,7 @@ export class AwardsScene extends Phaser.Scene {
     this.sfx('win');
     this.sfx('cheer', { delay: 0.1 });
     this.crowdJump();
-    audio.say(`${names}!`, true);
+    audio.say('awardWinner', true);
     this.aimBeams(winners.map((w) => w.blok.x));
     winners.forEach((w) => w.blok.cheer());
     await this.wait(600);
@@ -669,7 +669,7 @@ export class AwardsScene extends Phaser.Scene {
 
     const header = this.children.getByName('header') as Phaser.GameObjects.Text | null;
     this.marquee(header, 'SAMLET STILLING');
-    audio.say('Og nu… den samlede stilling!', true);
+    audio.say('standings', true);
     this.dimTo(0.3, 500);
     this.sfx('rumble');
     this.fx.shake(0.004, 1200);
@@ -769,7 +769,7 @@ export class AwardsScene extends Phaser.Scene {
     this.sfx('fanfare', { delay: 0.3 });
     this.sfx('cheer');
     this.sfx('explosion', { volume: 0.6, pitch: 1.3 });
-    audio.say(`${names} vinder SaMi Party! Klap for vinderen!`, true);
+    audio.say('champion', true);
     this.crowdJump(true);
 
     const header = this.children.getByName('header') as Phaser.GameObjects.Text | null;

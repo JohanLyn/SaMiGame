@@ -3,7 +3,7 @@ import { loadSvg } from '../../kit/svg';
 import { TEX } from '../../kit/textures';
 import { C, H, N, W } from '../../kit/theme';
 import { body, label, title } from '../../kit/ui';
-import type { MusicTheme } from '../../kit/audio';
+import type { MusicTheme, VoiceKey } from '../../kit/audio';
 import type { BotInput, PlayerView } from '../../flow/types';
 import { avatarKey, type Blok } from '../../objects/Blok';
 import { MinigameScene } from '../_framework/MinigameScene';
@@ -612,7 +612,7 @@ export class KaostaarnScene extends MinigameScene {
     this.fx.popIn(head);
     this.fx.popIn(sub, 200);
     this.sfx('fanfare');
-    this.say('Velkommen til finalen! Kaos-tårnet! Først på toppen vinder pokalen!', true);
+    this.say('towerWelcome', true);
     await this.wait(1300);
     this.sfx('whoosh', { pitch: 0.6 });
     this.tweens.add({ targets: [head, sub], alpha: 0, y: '-=60', duration: 500, delay: 1400 });
@@ -656,7 +656,7 @@ export class KaostaarnScene extends MinigameScene {
   }
 
   protected onStart(): void {
-    this.say('Klatr! Klatr! Klatr!');
+    this.say('climb');
   }
 
   // ---------------------------------------------------------------------------
@@ -691,7 +691,7 @@ export class KaostaarnScene extends MinigameScene {
 
     if (!this.saidTen && this.timeLeft <= 10 && this.arrivals.length === 0) {
       this.saidTen = true;
-      this.say('Ti sekunder tilbage! Klatr for livet!', true);
+      this.say('towerTenSec', true);
       this.ribbon('10 SEKUNDER!', C.tomato);
     }
     this.creakTimer -= dt;
@@ -873,7 +873,7 @@ export class KaostaarnScene extends MinigameScene {
       this.sfx('fanfare');
       this.sfx('cheer', { delay: 0.2 });
       this.sfx('explosion', { volume: 0.5, pitch: 1.4 });
-      this.say(`${c.p.name} har nået toppen! Pokalen er hjemme!`, true);
+      this.say('towerTop', true);
       this.fx.burst(x, y - 140, { texture: TEX.star, color: [N.sun, 0xffffff, c.p.colorNum], count: 40, speed: 900, gravity: 500, lifespan: 1400, scale: 0.8 });
       for (let i = 0; i < 5; i++) this.time.delayedCall(150 + i * 260, () => this.firework());
       if (this.timeLeft > 15) this.timeLeft = 15;
@@ -899,7 +899,7 @@ export class KaostaarnScene extends MinigameScene {
       this.sfx('cheer', { delay: 0.1 });
       this.fx.burst(this.sx(spot, TOP_H), y - 60, { texture: TEX.star, color: [c.p.colorNum, 0xffffff], count: 20, speed: 600, gravity: 700 });
       this.fx.floatText(this.sx(spot, TOP_H), y - 200, `${c.order + 1}. PLADS!`, c.p.color, 56);
-      this.say(`${c.p.name} er også oppe!`);
+      this.say('towerAlsoUp');
     }
   }
 
@@ -977,7 +977,7 @@ export class KaostaarnScene extends MinigameScene {
       this.sfx('whoosh', { volume: 0.4, pitch: 0.8 });
       if (!this.seenBalls) {
         this.seenBalls = true;
-        this.callout(this.sx(x, h - 260) + (x > 0 ? -380 : 380), this.sy(h - 260), 'Sumo-Frikadellerne!', 'Pas på! Frikadellerne ruller!');
+        this.callout(this.sx(x, h - 260) + (x > 0 ? -380 : 380), this.sy(h - 260), 'Sumo-Frikadellerne!', 'guestMeatballs');
       }
     }
     this.warnings = this.warnings.filter((w) => w.t > 0);
@@ -1132,7 +1132,7 @@ export class KaostaarnScene extends MinigameScene {
       }
       if (visible && !e.seen && this.onScreen(e.pivotH, -150)) {
         e.seen = true;
-        this.callout(this.sx(e.px, e.pivotH) - Math.sign(e.px) * 520, this.sy(e.pivotH) + 160, 'Sjippe-Ålen!', 'Ålen er tilbage! Og den svinger!');
+        this.callout(this.sx(e.px, e.pivotH) - Math.sign(e.px) * 520, this.sy(e.pivotH) + 160, 'Sjippe-Ålen!', 'guestEel');
       }
       const s = this.segAt(e.pivotH);
       const px = s.off + e.px;
@@ -1164,7 +1164,7 @@ export class KaostaarnScene extends MinigameScene {
       }
       if (!k.seen && this.onScreen(k.h, -200)) {
         k.seen = true;
-        if (!this.cushions.some((o) => o !== k && o.seen)) this.callout(this.sx(k.x, k.h) + (k.x > 0 ? -260 : 260), this.sy(k.h) - 60, 'Prutte-Roulette!', 'Pruttepuder! Hop på dem!');
+        if (!this.cushions.some((o) => o !== k && o.seen)) this.callout(this.sx(k.x, k.h) + (k.x > 0 ? -260 : 260), this.sy(k.h) - 60, 'Prutte-Roulette!', 'guestCushions');
       }
       for (const c of this.climbers) {
         if (c.arrived || c.stun > 0) continue;
@@ -1196,7 +1196,7 @@ export class KaostaarnScene extends MinigameScene {
       if (!t.seen && this.onScreen(t.h, -180)) {
         t.seen = true;
         const chick = t.kind === 'chicken';
-        this.callout(this.sx(t.x, t.h) - t.side * 330, this.sy(t.h) - 150, chick ? 'Kanon-Kyllingen!' : 'Kokken Siger: SENNEP!', chick ? 'Kanon-kyllingen har æg med!' : 'Kokken siger: sennep i hovedet!');
+        this.callout(this.sx(t.x, t.h) - t.side * 330, this.sy(t.h) - 150, chick ? 'Kanon-Kyllingen!' : 'Kokken Siger: SENNEP!', chick ? 'guestChicken' : 'guestMustard');
       }
       t.cd -= dt;
       if (t.cd > 0) continue;
@@ -1223,18 +1223,18 @@ export class KaostaarnScene extends MinigameScene {
         this.leaderCd = 3.5;
         this.sfx('select', { pitch: 1.2 });
         this.fx.floatText(this.sx(top.x, top.h), this.sy(top.h) - 190, 'FØRER!', top.p.color, 46);
-        if (this.rng() < 0.5) this.say(`${top.p.name} fører!`);
+        if (this.rng() < 0.5) this.say('lead');
       }
     }
     // Milepæle
     const p = this.camS / S_MIN;
     if (this.milestones.length && p >= this.milestones[0]) {
       const m = this.milestones.shift()!;
-      const texts: Record<number, [string, string]> = {
-        0.25: ['25 m – over hustagene!', 'Over hustagene! Vink til mor!'],
-        0.5: ['HALVVEJS! Solen går ned…', 'Halvvejs! Luften bliver tynd!'],
-        0.75: ['75 m – hej, rummet!', 'Vi er i rummet! Er det en satellit?'],
-        0.9: ['SIDSTE STRÆK!', 'Pokalen er lige der!'],
+      const texts: Record<number, [string, VoiceKey]> = {
+        0.25: ['25 m – over hustagene!', 'rooftops'],
+        0.5: ['HALVVEJS! Solen går ned…', 'halfway'],
+        0.75: ['75 m – hej, rummet!', 'space'],
+        0.9: ['SIDSTE STRÆK!', 'finalStretch'],
       };
       const [txt, line] = texts[m];
       this.ribbon(txt, C.sun);
@@ -1259,7 +1259,7 @@ export class KaostaarnScene extends MinigameScene {
   }
 
   /** "Gæsteoptræden"-skilt når en forhindring fra et andet minigame dukker op. */
-  private callout(x: number, y: number, guest: string, line: string): void {
+  private callout(x: number, y: number, guest: string, line: VoiceKey): void {
     const c = this.add.container(Phaser.Math.Clamp(x, 260, W - 300), Phaser.Math.Clamp(y, this.camS + 250, this.camS + H - 220)).setDepth(6500);
     const top = body(this, 0, -40, 'GÆSTEOPTRÆDEN', 24, { stroke: 6, color: C.cream });
     const name = label(this, 0, 6, guest, 44, { color: C.sun });

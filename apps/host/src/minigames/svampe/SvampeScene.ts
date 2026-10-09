@@ -190,7 +190,7 @@ export class SvampeScene extends MinigameScene {
   }
 
   protected onStart(): void {
-    this.say('Stå på den rigtige svamp!');
+    this.say('mushroomStart');
     this.startFree();
   }
 
@@ -342,7 +342,7 @@ export class SvampeScene extends MinigameScene {
     this.lastTick = Math.ceil(this.phaseDur);
     const col = SHROOM_COLORS[this.called];
     this.setSign(this.called);
-    this.say(`${col.name.toLowerCase()}!`, true);
+    this.say(col.voice, true);
     this.sfx('ding', { pitch: 0.8 + this.called * 0.1 });
     this.sfx('select');
     for (const s of this.shrooms) {
@@ -460,7 +460,7 @@ export class SvampeScene extends MinigameScene {
     if (survivors.length === 1) {
       this.fx.confetti(1800);
       this.sfx('cheer');
-      this.say('Svampekongen er fundet!');
+      this.say('mushroomKing');
     }
     // Hvis alle røg i samtidig, deler den sidste gruppe førstepladsen
     const groups = [...this.outGroups].reverse();
@@ -663,7 +663,7 @@ export class SvampeScene extends MinigameScene {
       group.push(d.slot);
       this.plop(d);
     }
-    if (this.alive.length > 1) this.say(fell.length > 1 ? 'Plask! Og plask!' : 'Plask! Ned i suppen!');
+    if (this.alive.length > 1) this.say(fell.length > 1 ? 'soupTwice' : 'soup');
   }
 
   private plop(d: Diver): void {

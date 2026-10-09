@@ -299,7 +299,7 @@ export class KanonScene extends MinigameScene {
   // ---------------------------------------------------------------------------
 
   protected onStart(): void {
-    this.say('Kanon-kyllingen er ladt!');
+    this.say('cannonLoaded');
     this.sfx('cluck');
   }
 
@@ -322,7 +322,7 @@ export class KanonScene extends MinigameScene {
   protected timeUp(): number[][] {
     const alive = this.runners.filter((r) => !r.out).length;
     if (alive) {
-      this.say('Trioen overlevede æg-regnen!', true);
+      this.say('cannonTrio', true);
       for (const r of this.runners) if (!r.out) r.blok.cheer();
     }
     return this.rankByTeam(alive ? 1 : 0);
@@ -387,7 +387,7 @@ export class KanonScene extends MinigameScene {
     if (mega) {
       this.fx.shake(0.008, 200);
       this.fx.floatText(this.cannonX, RAIL_Y - 250, 'MEGA-ÆG!', C.sun, 64);
-      this.say('Mega-æg!');
+      this.say('megaEgg');
     }
     this.vibrate(this.solo.slot, mega ? 90 : 25);
   }
@@ -494,8 +494,8 @@ export class KanonScene extends MinigameScene {
       onComplete: () => r.blok.setVisible(false),
     });
     const left = this.runners.filter((x) => !x.out).length;
-    if (left === 1) this.say('Kun én tilbage!', true);
-    else if (left > 1) this.say('En er ude!');
+    if (left === 1) this.say('oneLeft', true);
+    else if (left > 1) this.say('oneOut');
     this.setLayout(r.player.slot, { kind: 'wait', title: 'Du er ude!', message: 'Æggesplattet… hep på de andre!', emoji: '🍳' });
   }
 

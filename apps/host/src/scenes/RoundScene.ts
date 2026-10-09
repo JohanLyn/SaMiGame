@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { audio } from '../kit/audio';
+import { audio, type VoiceKey } from '../kit/audio';
 import { Fx } from '../kit/fx';
 import { partyBackdrop } from '../kit/scenery';
 import { C, H, W } from '../kit/theme';
@@ -33,7 +33,8 @@ export class RoundScene extends Phaser.Scene {
     const sub = body(this, W / 2, 450, finale ? 'Kaos-Tårnet venter – dobbelt op på alt!' : round === totalRounds ? 'Sidste runde før finalen!' : `af ${totalRounds}`, 48, { stroke: 8 });
     fx.popIn(sub, 250);
     audio.sfx(finale ? 'fanfare' : 'powerup');
-    audio.say(finale ? 'finale' : round === 1 ? 'start' : 'ritual');
+    const call: VoiceKey = finale ? 'finale' : round === totalRounds ? 'finalRound' : round <= 15 ? (`round_${round}` as VoiceKey) : 'ritual';
+    this.time.delayedCall(round === 1 ? 900 : 0, () => audio.say(call, true));
 
     const best = Math.max(...players.map((p) => p.score));
     const xs = layoutRow(players.length, W / 2);

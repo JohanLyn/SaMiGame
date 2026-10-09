@@ -121,7 +121,7 @@ export class SumoScene extends MinigameScene {
   }
 
   protected onStart(): void {
-    this.say('Skub dem ud af panden!');
+    this.say('sumoStart');
   }
 
   protected play(dt: number): void {

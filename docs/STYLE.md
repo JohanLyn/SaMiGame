@@ -47,7 +47,7 @@ Spillerfarver (fra `PLAYER_COLORS`): Rød `#ff4d4d`, Blå `#3d8bff`, Grøn `#3cc
 ## 6. Lyd
 - Hver handling har en lyd fra `kit/audio/sfx.ts` (`pop`, `bonk`, `whoosh`, `coin`, `splash`, `boing`, `fart`, `explosion`, `win`, `lose`, `tick`, `go`, `select`, `cheer`...).
 - Musik via `kit/audio/music.ts` (`hub`, `game`, `tense`, `finale`, `results`).
-- Fortælleren (`kit/audio/narrator.ts`) siger korte, gakkede danske linjer ved start, slut og skøre øjeblikke. Max én linje hver 4. sekund.
+- Speakeren (`kit/audio/narrator.ts`) er en engelsk arena-announcer (tænk Unreal Tournament / Move or Die): korte, kraftige kald ved start, slut, sejre i træk og skøre øjeblikke. Replikkerne står i `kit/audio/voiceLines.ts` og er forudindspillede lydklip. `hype`-replikker får automatisk bom + whoosh, og musikken dukkes mens han taler. Max én replik ca. hvert 2,5 sekund (medmindre `force`).
 
 ## 7. Tjekliste før en skærm er "færdig"
 - [ ] Ingen standard-Phaser-tekst uden kontur/skygge, ingen ensfarvede firkanter uden kontur.
